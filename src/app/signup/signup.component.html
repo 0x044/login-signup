@@ -24,26 +24,22 @@
       <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
-          <input matInput formControlName="username" placeholder="Enter your username" autocomplete="username" required>
+          <input matInput formControlName="username" placeholder=" Enter your username" autocomplete="username" required>
           <mat-error *ngIf="hasError('username')">{{ getErrorMessage('username') }}</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email Address</mat-label>
-          <input matInput type="email" formControlName="userMail" placeholder="your.email@example.com" autocomplete="email" required>
+          <input matInput type="email" formControlName="userMail" placeholder=" email@example.com" autocomplete="email" required>
           <mat-error *ngIf="hasError('userMail')">{{ getErrorMessage('userMail') }}</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Phone Number</mat-label>
-          <input matInput type="tel" formControlName="userPhone" placeholder="9876543210" autocomplete="tel" maxlength="10" required>
+          <input matInput type="tel" formControlName="userPhone" placeholder=" 9876543210" autocomplete="tel" maxlength="10" required>
           <mat-error *ngIf="hasError('userPhone')">{{ getErrorMessage('userPhone') }}</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Enter your password" autocomplete="new-password" required>
+          <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder=" Enter your password" autocomplete="new-password" required>
           <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
             <mat-icon>{{showPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
@@ -75,8 +71,7 @@
 
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Confirm Password</mat-label>
-          <input matInput [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required>
+          <input matInput [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" placeholder=" Re-enter your password" autocomplete="new-password" required>
           <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPasswordVisibility()" [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'">
             <mat-icon>{{showConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
@@ -84,13 +79,11 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-           <mat-label>Address</mat-label>
            <textarea matInput formControlName="userAddress" placeholder="Enter your complete address" rows="3" required></textarea>
            <mat-error *ngIf="hasError('userAddress')">{{ getErrorMessage('userAddress') }}</mat-error>
         </mat-form-field>
 
         <div class="form-group">
-          <mat-label class="role-label">I want to *</mat-label>
           <mat-radio-group formControlName="userRole" class="role-selection">
             <mat-radio-button *ngFor="let role of userRoles" [value]="role.value" class="role-option">
                <span class="role-icon">{{ role.icon }}</span> {{ role.label }}
@@ -127,100 +120,173 @@
 </div>
 
 <style>
-  .signup-card {
-    max-width: 500px;
-    width: 100%;
+/* Signup Component Specific Styles */
+
+/* Card container */
+.signup-card {
+  max-width: 520px;
+  width: 100%;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  .full-width {
-    width: 100%;
-    margin-bottom: 12px; /* Adjusted spacing */
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-   mat-card-header {
-    display: flex;
-    align-items: center;
-    padding-bottom: 16px;
-  }
-  .back-button {
-      margin-right: 8px;
-  }
-  .header-text {
-      flex-grow: 1;
-  }
-  .form-group {
-    margin-bottom: 16px;
-  }
-  .role-label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: rgba(0,0,0,.6);
-   }
-  .role-selection {
-    display: flex;
-    gap: 16px; /* Space between radio buttons */
-  }
-  .role-option .role-icon {
-      margin-right: 8px;
-  }
-  .terms-group {
-      margin-top: 20px;
-      margin-bottom: 20px;
-  }
-  .link {
-      color: #3f51b5; /* Primary color */
-      text-decoration: none;
-  }
-  .link:hover {
-      text-decoration: underline;
-  }
-  .submit-button {
-      padding: 10px 0;
-      margin-top: 8px;
-      margin-bottom: 16px;
-  }
-  .footer-text {
-    text-align: center;
-    font-size: 0.9em;
-    color: rgba(0,0,0,.8);
-  }
-  .alert {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    margin-bottom: 16px;
-    border-radius: 4px;
-  }
-  .alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-   .alert-success {
-      background-color: #d4edda;
-      color: #155724;
-   }
-  .alert mat-icon {
-    margin-right: 8px;
-  }
-    .password-requirements {
-        font-size: 0.8em;
-        margin-top: -10px;
-        margin-bottom: 10px;
-        padding-left: 0;
-    }
-    .password-requirements mat-list-item {
-        height: 20px !important;
-        color: rgba(0,0,0,0.6);
-    }
-     .password-requirements mat-list-item.met {
-        color: green;
-     }
-    .password-requirements .requirement-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-        margin-right: 8px;
-     }
-     .mat-mdc-list-item-icon {
-         color: inherit !important;
-     }
+}
+
+/* Card header layout */
+mat-card-header {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-button {
+  flex-shrink: 0;
+  margin: -8px 0 0 -8px;
+  color: #bdae93 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.back-button:hover {
+  background-color: rgba(142, 192, 124, 0.15) !important;
+  color: #8ec07c !important;
+}
+
+.header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Form fields */
+.full-width {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.full-width mat-form-field {
+  width: 100%;
+}
+
+/* Password requirements list */
+.password-requirements {
+  background-color: rgba(107, 104, 103, 0.2) !important;
+  border-radius: 6px;
+  margin: -8px 0 12px 0 !important;
+  padding: 8px 12px !important;
+}
+
+.password-requirements mat-list-item {
+  height: 24px !important;
+  padding: 2px 0 !important;
+  font-size: 12px !important;
+  color: #bdae93 !important;
+}
+
+.password-requirements mat-list-item.met {
+  color: #b8bb26 !important;
+}
+
+.password-requirements .requirement-icon {
+  font-size: 14px !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-right: 8px !important;
+  color: inherit !important;
+}
+
+.mat-mdc-list-item-icon {
+  color: inherit !important;
+}
+
+/* Form group styling */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.role-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #ebdbb2;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+.role-selection {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.role-option {
+  flex: 1;
+  min-width: 160px;
+}
+
+.role-icon {
+  margin-right: 6px;
+  font-size: 16px;
+}
+
+/* Terms checkbox */
+.terms-group {
+  margin: 24px 0;
+  padding: 12px;
+  background-color: rgba(107, 104, 103, 0.15);
+  border-radius: 6px;
+}
+
+.terms-group .mat-mdc-checkbox-label {
+  color: #d5c4a1 !important;
+  font-size: 13px !important;
+}
+
+.link {
+  color: #8ec07c !important;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.link:hover {
+  color: #a8d890 !important;
+  text-decoration: underline;
+}
+
+/* Submit button */
+.submit-button {
+  padding: 12px 24px !important;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  height: 44px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(142, 192, 124, 0.4) !important;
+}
+
+/* Footer text */
+.footer-text {
+  text-align: center;
+  font-size: 13px;
+  color: #bdae93;
+  font-weight: 500;
+  margin-top: 12px;
+}
+
+.footer-text button {
+  margin: 0 2px;
+}
 </style>

@@ -388,7 +388,7 @@ export class SignupComponent implements OnInit {
    */
   navigateToLogin(): void {
     this.debugLog("🔄 Navigating to login page");
-    this.router.navigate(["/login"]);
+    this.router.navigate(["/home"]);
   }
 
   /**

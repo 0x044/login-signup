@@ -12,11 +12,10 @@
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
           <input matInput
                  id="username"
                  formControlName="username"
-                 placeholder="Enter your username"
+                 placeholder="username"
                  autocomplete="username"
                  required>
           <mat-icon matPrefix>person_outline</mat-icon>
@@ -26,12 +25,11 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
           <input matInput
                  [type]="showPassword ? 'text' : 'password'"
                  id="password"
                  formControlName="password"
-                 placeholder="Enter your password"
+                 placeholder="password"
                  autocomplete="current-password"
                  required>
           <mat-icon matPrefix>lock_outline</mat-icon>
@@ -69,51 +67,82 @@
 </div>
 
 <style>
-  .login-card {
-    max-width: 400px;
-    width: 100%;
+/* Login Component Specific Styles */
+
+/* Card container */
+.login-card {
+  max-width: 420px;
+  width: 100%;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  .full-width {
-    width: 100%;
-    margin-bottom: 16px; /* Spacing between fields */
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  .form-options {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 16px;
-  }
-  .forgot-link {
-    font-size: 0.9em;
-  }
-  .submit-button {
-      padding: 10px 0;
-      margin-top: 8px;
-  }
-  .divider {
-    margin: 24px 0;
-    position: relative;
-  }
-  .signup-section {
-    text-align: center;
-    margin-top: 24px;
-    font-size: 0.9em;
-  }
-  .signup-section p {
-    margin: 0;
-    color: rgba(0,0,0,.8);
-  }
-    .alert {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    margin-bottom: 16px;
-    border-radius: 4px;
-  }
-  .alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-  .alert mat-icon {
-    margin-right: 8px;
-  }
+}
+
+/* Form field container */
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.full-width mat-form-field {
+  width: 100%;
+}
+
+/* Form options row */
+.form-options {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  margin-top: -8px;
+}
+
+.forgot-link {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Submit button */
+.submit-button {
+  padding: 12px 24px !important;
+  margin-top: 8px;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  height: 44px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(142, 192, 124, 0.4) !important;
+}
+
+/* Signup section */
+.signup-section {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(107, 104, 103, 0.3);
+}
+
+.signup-section p {
+  margin: 0;
+  color: #bdae93;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.signup-section button {
+  margin-left: 4px;
+}
 </style>

@@ -1,0 +1,375 @@
+<div class="dashboard-container">
+  
+  <!-- ========================================
+       HEADER SECTION
+       ======================================== -->
+  
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="welcome-section">
+        <h1 class="welcome-title">
+          Welcome back, 
+          <span class="username" *ngIf="userProfile">{{ userProfile.username }}</span>
+          <span class="username" *ngIf="!userProfile">Client</span>!
+        </h1>
+        <p class="welcome-subtitle">Here's what's happening with your bookings</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-refresh" (click)="refreshDashboard()" [disabled]="loading.bookings || loading.complaints">
+          <span class="icon">🔄</span>
+          <span>Refresh</span>
+        </button>
+        <button class="btn-logout" (click)="logout()" [disabled]="loading.logout">
+          <span class="icon">🚪</span>
+          <span *ngIf="!loading.logout">Logout</span>
+          <span *ngIf="loading.logout">Logging out...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       ALERT MESSAGES
+       ======================================== -->
+  
+  <div class="alerts-container" *ngIf="errorMessage || successMessage">
+    <div class="alert alert-error" *ngIf="errorMessage">
+      <span class="alert-icon">❌</span>
+      <span class="alert-message">{{ errorMessage }}</span>
+      <button class="alert-close" (click)="errorMessage = ''">×</button>
+    </div>
+    
+    <div class="alert alert-success" *ngIf="successMessage">
+      <span class="alert-icon">✅</span>
+      <span class="alert-message">{{ successMessage }}</span>
+      <button class="alert-close" (click)="successMessage = ''">×</button>
+    </div>
+  </div>
+
+  <!-- ========================================
+       LOADING OVERLAY
+       ======================================== -->
+  
+  <div class="loading-overlay" *ngIf="loading.profile || loading.bookings || loading.complaints">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading dashboard data...</p>
+  </div>
+
+  <!-- ========================================
+       STATISTICS CARDS
+       ======================================== -->
+  
+  <div class="stats-grid">
+    
+    <!-- Total Bookings Card -->
+    <div class="stat-card stat-card-primary">
+      <div class="stat-icon">📅</div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ stats.totalBookings }}</h3>
+        <p class="stat-label">Total Bookings</p>
+      </div>
+    </div>
+
+    <!-- Upcoming Bookings Card -->
+    <div class="stat-card stat-card-success">
+      <div class="stat-icon">🔜</div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ stats.upcomingBookings }}</h3>
+        <p class="stat-label">Upcoming Bookings</p>
+      </div>
+    </div>
+
+    <!-- Completed Bookings Card -->
+    <div class="stat-card stat-card-info">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ stats.completedBookings }}</h3>
+        <p class="stat-label">Completed Bookings</p>
+      </div>
+    </div>
+
+    <!-- Active Complaints Card -->
+    <div class="stat-card stat-card-warning">
+      <div class="stat-icon">📝</div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ stats.activeComplaints }}</h3>
+        <p class="stat-label">Active Complaints</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================
+       MAIN DASHBOARD CONTENT
+       ======================================== -->
+  
+  <div class="dashboard-content">
+
+    <!-- LEFT COLUMN -->
+    <div class="content-left">
+
+      <!-- ========================================
+           UPCOMING BOOKINGS SECTION
+           ======================================== -->
+      
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="card-icon">🏠</span>
+            Upcoming Bookings
+          </h2>
+          <button class="btn-link" (click)="navigateToMyBookings()">
+            View All →
+          </button>
+        </div>
+        
+        <div class="card-body">
+          
+          <!-- Loading State -->
+          <div class="empty-state" *ngIf="loading.bookings">
+            <div class="loading-spinner-small"></div>
+            <p>Loading bookings...</p>
+          </div>
+
+          <!-- No Bookings State -->
+          <div class="empty-state" *ngIf="!loading.bookings && upcomingBookings.length === 0">
+            <div class="empty-icon">📭</div>
+            <h3>No Upcoming Bookings</h3>
+            <p>You don't have any upcoming bookings yet.</p>
+            <button class="btn-primary" (click)="navigateToSearchProperties()">
+              Search Properties
+            </button>
+          </div>
+
+          <!-- Bookings List -->
+          <div class="bookings-list" *ngIf="!loading.bookings && upcomingBookings.length > 0">
+            <div class="booking-item" *ngFor="let booking of upcomingBookings.slice(0, 3)">
+              
+              <div class="booking-image">
+                <img [src]="booking.propertyImage || getDefaultImage()" 
+                     [alt]="booking.propertyName"
+                     (error)="handleImageError($event)">
+              </div>
+              
+              <div class="booking-details">
+                <h4 class="booking-property-name">{{ booking.propertyName }}</h4>
+                <p class="booking-location">
+                  <span class="icon">📍</span>
+                  {{ booking.city }}
+                </p>
+                <div class="booking-dates">
+                  <div class="date-item">
+                    <span class="date-label">Check-in:</span>
+                    <span class="date-value">{{ formatDate(booking.checkinDate) }}</span>
+                  </div>
+                  <div class="date-item">
+                    <span class="date-label">Check-out:</span>
+                    <span class="date-value">{{ formatDate(booking.checkoutDate) }}</span>
+                  </div>
+                </div>
+                <div class="booking-footer">
+                  <span class="booking-status" [ngClass]="getBookingStatusClass(booking.isBookingStatus)">
+                    {{ booking.isBookingStatus }}
+                  </span>
+                  <button class="btn-small btn-view" (click)="viewBookingDetails(booking.bookingId)">
+                    View Details
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================
+           RECENT ACTIVITY SECTION
+           ======================================== -->
+      
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="card-icon">📊</span>
+            Recent Activity
+          </h2>
+        </div>
+        
+        <div class="card-body">
+          
+          <!-- No Activity -->
+          <div class="empty-state" *ngIf="recentBookings.length === 0">
+            <div class="empty-icon">📋</div>
+            <p>No recent activity</p>
+          </div>
+
+          <!-- Activity Timeline -->
+          <div class="activity-timeline" *ngIf="recentBookings.length > 0">
+            <div class="timeline-item" *ngFor="let booking of recentBookings.slice(0, 5)">
+              <div class="timeline-dot" [ngClass]="getBookingStatusClass(booking.isBookingStatus)"></div>
+              <div class="timeline-content">
+                <p class="timeline-text">
+                  <strong>{{ booking.isBookingStatus }}</strong> - {{ booking.propertyName }}
+                </p>
+                <p class="timeline-date">{{ formatDate(booking.checkinDate) }}</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="content-right">
+
+      <!-- ========================================
+           QUICK ACTIONS SECTION
+           ======================================== -->
+      
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="card-icon">⚡</span>
+            Quick Actions
+          </h2>
+        </div>
+        
+        <div class="card-body">
+          <div class="quick-actions">
+            
+            <button class="action-btn action-search" (click)="navigateToSearchProperties()">
+              <span class="action-icon">🔍</span>
+              <span class="action-text">Search Properties</span>
+            </button>
+
+            <button class="action-btn action-bookings" (click)="navigateToMyBookings()">
+              <span class="action-icon">📅</span>
+              <span class="action-text">My Bookings</span>
+            </button>
+
+            <button class="action-btn action-complaints" (click)="navigateToMyComplaints()">
+              <span class="action-icon">📝</span>
+              <span class="action-text">My Complaints</span>
+            </button>
+
+            <button class="action-btn action-profile" (click)="navigateToProfile()">
+              <span class="action-icon">👤</span>
+              <span class="action-text">My Profile</span>
+            </button>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================
+           COMPLAINTS SECTION
+           ======================================== -->
+      
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="card-icon">📝</span>
+            My Complaints
+          </h2>
+          <button class="btn-link" (click)="navigateToMyComplaints()">
+            View All →
+          </button>
+        </div>
+        
+        <div class="card-body">
+          
+          <!-- Loading State -->
+          <div class="empty-state" *ngIf="loading.complaints">
+            <div class="loading-spinner-small"></div>
+            <p>Loading complaints...</p>
+          </div>
+
+          <!-- No Complaints State -->
+          <div class="empty-state" *ngIf="!loading.complaints && allComplaints.length === 0">
+            <div class="empty-icon">✅</div>
+            <h3>No Complaints</h3>
+            <p>You haven't filed any complaints.</p>
+          </div>
+
+          <!-- Complaints List -->
+          <div class="complaints-list" *ngIf="!loading.complaints && allComplaints.length > 0">
+            
+            <div class="complaint-item" *ngFor="let complaint of allComplaints.slice(0, 3)">
+              <div class="complaint-header">
+                <span class="complaint-type">{{ complaint.complaintType }}</span>
+                <span class="complaint-status" [ngClass]="getComplaintStatusClass(complaint.complaintStatus)">
+                  {{ complaint.complaintStatus }}
+                </span>
+              </div>
+              <p class="complaint-description">{{ complaint.complaintDescription.length > 100 ? (complaint.complaintDescription | slice:0:100) + '...' : complaint.complaintDescription }}</p>
+              <p class="complaint-date">{{ formatDateTime(complaint.complaintDate) }}</p>
+            </div>
+
+            <div class="complaints-summary" *ngIf="allComplaints.length > 3">
+              <p>+ {{ allComplaints.length - 3 }} more complaints</p>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================
+           BOOKING STATS SECTION
+           ======================================== -->
+      
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <span class="card-icon">📈</span>
+            Booking Statistics
+          </h2>
+        </div>
+        
+        <div class="card-body">
+          <div class="stats-list">
+            
+            <div class="stats-item">
+              <span class="stats-label">Total Bookings:</span>
+              <span class="stats-value">{{ stats.totalBookings }}</span>
+            </div>
+
+            <div class="stats-item">
+              <span class="stats-label">Upcoming:</span>
+              <span class="stats-value stats-success">{{ stats.upcomingBookings }}</span>
+            </div>
+
+            <div class="stats-item">
+              <span class="stats-label">Completed:</span>
+              <span class="stats-value stats-info">{{ stats.completedBookings }}</span>
+            </div>
+
+            <div class="stats-item">
+              <span class="stats-label">Cancelled:</span>
+              <span class="stats-value stats-danger">{{ stats.cancelledBookings }}</span>
+            </div>
+
+            <div class="stats-divider"></div>
+
+            <div class="stats-item">
+              <span class="stats-label">Active Complaints:</span>
+              <span class="stats-value stats-warning">{{ stats.activeComplaints }}</span>
+            </div>
+
+            <div class="stats-item">
+              <span class="stats-label">Resolved Complaints:</span>
+              <span class="stats-value stats-success">{{ stats.resolvedComplaints }}</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
