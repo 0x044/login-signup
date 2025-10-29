@@ -1,14 +1,14 @@
-import { Routes } from '@angular/router';
-import { SignupComponent } from './signup/signup.component';
+import { Routes } from "@angular/router";
+import { SignupComponent } from "./signup/signup.component";
+import { LoginComponent } from "./login/login.component";
 
 export const routes: Routes = [
-    {
-    path: 'v1/api/user',
-    redirectTo: '/addUser',
-    pathMatch: 'full',
+  {
+    path: "home",
+    component: LoginComponent,
   },
   {
-    path: 'addUser',
+    path: "addUser",
     component: SignupComponent,
-  }
+  },
 ];

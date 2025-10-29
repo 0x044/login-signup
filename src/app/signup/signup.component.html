@@ -1,259 +1,226 @@
-<div class="signup-container">
-  <!-- Background Elements -->
-  <div class="background-shapes">
-    <div class="shape shape-1"></div>
-    <div class="shape shape-2"></div>
-    <div class="shape shape-3"></div>
-  </div>
-
-  <!-- Signup Card -->
-  <div class="signup-card">
-    <!-- Header -->
-    <div class="signup-header">
-      <button class="back-button" (click)="navigateToHome()" type="button">
-        <span>←</span>
+<div class="center-container">
+  <mat-card class="signup-card">
+    <mat-card-header>
+      <button mat-icon-button (click)="navigateToHome()" type="button" aria-label="Back to home" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
       </button>
-      <h1 class="signup-title">Create Account</h1>
-      <p class="signup-subtitle">Join Spacefinders today</p>
-    </div>
+      <div class="header-text">
+        <mat-card-title>Create Account</mat-card-title>
+        <mat-card-subtitle>Join Spacefinders today</mat-card-subtitle>
+      </div>
+    </mat-card-header>
 
-    <!-- Success Message -->
-    <div *ngIf="successMessage" class="alert alert-success">
-      <span class="alert-icon">✓</span>
-      <span class="alert-message">{{ successMessage }}</span>
-    </div>
-
-    <!-- Error Message -->
-    <div *ngIf="errorMessage" class="alert alert-error">
-      <span class="alert-icon">✕</span>
-      <span class="alert-message">{{ errorMessage }}</span>
-    </div>
-
-    <!-- Signup Form -->
-    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup-form">
-      
-      <!-- Username Field -->
-      <div class="form-group">
-        <label for="username" class="form-label">
-          Username <span class="required">*</span>
-        </label>
-        <input
-          type="text"
-          id="username"
-          formControlName="username"
-          class="form-input"
-          [class.error]="hasError('username')"
-          placeholder="Enter your username"
-          autocomplete="username"
-        />
-        <span *ngIf="hasError('username')" class="error-message">
-          {{ getErrorMessage('username') }}
-        </span>
+    <mat-card-content>
+      <div *ngIf="successMessage" class="alert alert-success" role="alert">
+        <mat-icon>check_circle_outline</mat-icon>
+        <span>{{ successMessage }}</span>
       </div>
 
-      <!-- Email Field -->
-      <div class="form-group">
-        <label for="userMail" class="form-label">
-          Email Address <span class="required">*</span>
-        </label>
-        <input
-          type="email"
-          id="userMail"
-          formControlName="userMail"
-          class="form-input"
-          [class.error]="hasError('userMail')"
-          placeholder="your.email@example.com"
-          autocomplete="email"
-        />
-        <span *ngIf="hasError('userMail')" class="error-message">
-          {{ getErrorMessage('userMail') }}
-        </span>
+      <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Phone Number Field -->
-      <div class="form-group">
-        <label for="userPhone" class="form-label">
-          Phone Number <span class="required">*</span>
-        </label>
-        <input
-          type="tel"
-          id="userPhone"
-          formControlName="userPhone"
-          class="form-input"
-          [class.error]="hasError('userPhone')"
-          placeholder="9876543210"
-          autocomplete="tel"
-          maxlength="10"
-        />
-        <span *ngIf="hasError('userPhone')" class="error-message">
-          {{ getErrorMessage('userPhone') }}
-        </span>
-      </div>
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
 
-      <!-- Password Field -->
-      <div class="form-group">
-        <label for="password" class="form-label">
-          Password <span class="required">*</span>
-        </label>
-        <div class="password-input-wrapper">
-          <input
-            [type]="showPassword ? 'text' : 'password'"
-            id="password"
-            formControlName="password"
-            class="form-input"
-            [class.error]="hasError('password')"
-            placeholder="Enter your password"
-            autocomplete="new-password"
-          />
-          <button
-            type="button"
-            class="password-toggle"
-            (click)="togglePasswordVisibility()"
-          >
-            <span *ngIf="!showPassword">👁️</span>
-            <span *ngIf="showPassword">🙈</span>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" placeholder="Enter your username" autocomplete="username" required>
+          <mat-error *ngIf="hasError('username')">{{ getErrorMessage('username') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email Address</mat-label>
+          <input matInput type="email" formControlName="userMail" placeholder="your.email@example.com" autocomplete="email" required>
+          <mat-error *ngIf="hasError('userMail')">{{ getErrorMessage('userMail') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Phone Number</mat-label>
+          <input matInput type="tel" formControlName="userPhone" placeholder="9876543210" autocomplete="tel" maxlength="10" required>
+          <mat-error *ngIf="hasError('userPhone')">{{ getErrorMessage('userPhone') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Enter your password" autocomplete="new-password" required>
+          <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            <mat-icon>{{showPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+           <mat-error *ngIf="hasError('password') && !password?.errors?.['passwordPattern']">{{ getErrorMessage('password') }}</mat-error>
+        </mat-form-field>
+
+         <mat-list dense *ngIf="password?.touched && password?.errors?.['passwordPattern']" class="password-requirements">
+           <mat-list-item [class.met]="getPasswordRequirements().hasMinLength">
+              <mat-icon matListItemIcon class="requirement-icon">{{ getPasswordRequirements().hasMinLength ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              At least 8 characters
+           </mat-list-item>
+           <mat-list-item [class.met]="getPasswordRequirements().hasUpperCase">
+              <mat-icon matListItemIcon class="requirement-icon">{{ getPasswordRequirements().hasUpperCase ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              One uppercase letter
+           </mat-list-item>
+           <mat-list-item [class.met]="getPasswordRequirements().hasLowerCase">
+              <mat-icon matListItemIcon class="requirement-icon">{{ getPasswordRequirements().hasLowerCase ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              One lowercase letter
+            </mat-list-item>
+           <mat-list-item [class.met]="getPasswordRequirements().hasNumeric">
+              <mat-icon matListItemIcon class="requirement-icon">{{ getPasswordRequirements().hasNumeric ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              One number
+            </mat-list-item>
+           <mat-list-item [class.met]="getPasswordRequirements().hasSpecialChar">
+              <mat-icon matListItemIcon class="requirement-icon">{{ getPasswordRequirements().hasSpecialChar ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              One special character (#$%^&+=)
+            </mat-list-item>
+        </mat-list>
+
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <input matInput [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required>
+          <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPasswordVisibility()" [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'">
+            <mat-icon>{{showConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="hasError('confirmPassword')">{{ getErrorMessage('confirmPassword') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+           <mat-label>Address</mat-label>
+           <textarea matInput formControlName="userAddress" placeholder="Enter your complete address" rows="3" required></textarea>
+           <mat-error *ngIf="hasError('userAddress')">{{ getErrorMessage('userAddress') }}</mat-error>
+        </mat-form-field>
+
+        <div class="form-group">
+          <mat-label class="role-label">I want to *</mat-label>
+          <mat-radio-group formControlName="userRole" class="role-selection">
+            <mat-radio-button *ngFor="let role of userRoles" [value]="role.value" class="role-option">
+               <span class="role-icon">{{ role.icon }}</span> {{ role.label }}
+            </mat-radio-button>
+          </mat-radio-group>
+           <mat-error *ngIf="hasError('userRole')">{{ getErrorMessage('userRole') }}</mat-error>
+        </div>
+
+        <div class="form-group terms-group">
+          <mat-checkbox formControlName="agreeTerms" required color="primary">
+            I agree to the <a href="#" class="link">Terms and Conditions</a>
+            and <a href="#" class="link">Privacy Policy</a> *
+          </mat-checkbox>
+          <mat-error *ngIf="hasError('agreeTerms')">You must agree to the terms</mat-error>
+        </div>
+
+        <button mat-raised-button color="primary" type="submit" class="full-width submit-button" [disabled]="isLoading || signupForm.invalid">
+           <span *ngIf="!isLoading">Create Account</span>
+           <span *ngIf="isLoading" style="display: flex; align-items: center; justify-content: center;">
+             <mat-spinner diameter="20" style="margin-right: 8px;"></mat-spinner>
+             Creating Account...
+           </span>
+        </button>
+
+        <div class="footer-text">
+          Already have an account?
+          <button mat-button color="primary" type="button" (click)="navigateToLogin()">
+            Login here
           </button>
         </div>
-        
-        <!-- Password Requirements -->
-        <div class="password-requirements" *ngIf="password?.touched">
-          <div class="requirement" [class.met]="getPasswordRequirements().hasMinLength">
-            <span class="requirement-icon">{{ getPasswordRequirements().hasMinLength ? '✓' : '○' }}</span>
-            At least 8 characters
-          </div>
-          <div class="requirement" [class.met]="getPasswordRequirements().hasUpperCase">
-            <span class="requirement-icon">{{ getPasswordRequirements().hasUpperCase ? '✓' : '○' }}</span>
-            One uppercase letter
-          </div>
-          <div class="requirement" [class.met]="getPasswordRequirements().hasLowerCase">
-            <span class="requirement-icon">{{ getPasswordRequirements().hasLowerCase ? '✓' : '○' }}</span>
-            One lowercase letter
-          </div>
-          <div class="requirement" [class.met]="getPasswordRequirements().hasNumeric">
-            <span class="requirement-icon">{{ getPasswordRequirements().hasNumeric ? '✓' : '○' }}</span>
-            One number
-          </div>
-          <div class="requirement" [class.met]="getPasswordRequirements().hasSpecialChar">
-            <span class="requirement-icon">{{ getPasswordRequirements().hasSpecialChar ? '✓' : '○' }}</span>
-            One special character (&comma;#$%^&+=)
-          </div>
-        </div>
-        
-        <span *ngIf="hasError('password')" class="error-message">
-          {{ getErrorMessage('password') }}
-        </span>
-      </div>
-
-      <!-- Confirm Password Field -->
-      <div class="form-group">
-        <label for="confirmPassword" class="form-label">
-          Confirm Password <span class="required">*</span>
-        </label>
-        <div class="password-input-wrapper">
-          <input
-            [type]="showConfirmPassword ? 'text' : 'password'"
-            id="confirmPassword"
-            formControlName="confirmPassword"
-            class="form-input"
-            [class.error]="hasError('confirmPassword')"
-            placeholder="Re-enter your password"
-            autocomplete="new-password"
-          />
-          <button
-            type="button"
-            class="password-toggle"
-            (click)="toggleConfirmPasswordVisibility()"
-          >
-            <span *ngIf="!showConfirmPassword">👁️</span>
-            <span *ngIf="showConfirmPassword">🙈</span>
-          </button>
-        </div>
-        <span *ngIf="hasError('confirmPassword')" class="error-message">
-          {{ getErrorMessage('confirmPassword') }}
-        </span>
-      </div>
-
-      <!-- Address Field -->
-      <div class="form-group">
-        <label for="userAddress" class="form-label">
-          Address <span class="required">*</span>
-        </label>
-        <textarea
-          id="userAddress"
-          formControlName="userAddress"
-          class="form-textarea"
-          [class.error]="hasError('userAddress')"
-          placeholder="Enter your complete address"
-          rows="3"
-        ></textarea>
-        <span *ngIf="hasError('userAddress')" class="error-message">
-          {{ getErrorMessage('userAddress') }}
-        </span>
-      </div>
-
-      <!-- User Role Selection -->
-      <div class="form-group">
-        <label class="form-label">
-          I want to <span class="required">*</span>
-        </label>
-        <div class="role-selection">
-          <label 
-            *ngFor="let role of userRoles" 
-            class="role-option"
-            [class.selected]="userRole?.value === role.value"
-          >
-            <input
-              type="radio"
-              formControlName="userRole"
-              [value]="role.value"
-              class="role-radio"
-            />
-            <div class="role-content">
-              <span class="role-icon">{{ role.icon }}</span>
-              <span class="role-label">{{ role.label }}</span>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Terms and Conditions -->
-      <div class="form-group">
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            formControlName="agreeTerms"
-            class="checkbox-input"
-          />
-          <span class="checkbox-text">
-            I agree to the <a href="#" class="link">Terms and Conditions</a> 
-            and <a href="#" class="link">Privacy Policy</a>
-            <span class="required">*</span>
-          </span>
-        </label>
-        <span *ngIf="hasError('agreeTerms')" class="error-message">
-          You must agree to the terms and conditions
-        </span>
-      </div>
-
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        class="submit-button"
-        [disabled]="isLoading || signupForm.invalid"
-        [class.loading]="isLoading"
-      >
-        <span *ngIf="!isLoading">Create Account</span>
-        <span *ngIf="isLoading" class="loading-spinner">
-          <span class="spinner"></span>
-          Creating Account...
-        </span>
-      </button>
-
-      <!-- Login Link -->
-      <div class="footer-text">
-        Already have an account? 
-        <a (click)="navigateToLogin()" class="link-button">Login here</a>
-      </div>
-    </form>
-  </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
 </div>
+
+<style>
+  .signup-card {
+    max-width: 500px;
+    width: 100%;
+  }
+  .full-width {
+    width: 100%;
+    margin-bottom: 12px; /* Adjusted spacing */
+  }
+   mat-card-header {
+    display: flex;
+    align-items: center;
+    padding-bottom: 16px;
+  }
+  .back-button {
+      margin-right: 8px;
+  }
+  .header-text {
+      flex-grow: 1;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .role-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: rgba(0,0,0,.6);
+   }
+  .role-selection {
+    display: flex;
+    gap: 16px; /* Space between radio buttons */
+  }
+  .role-option .role-icon {
+      margin-right: 8px;
+  }
+  .terms-group {
+      margin-top: 20px;
+      margin-bottom: 20px;
+  }
+  .link {
+      color: #3f51b5; /* Primary color */
+      text-decoration: none;
+  }
+  .link:hover {
+      text-decoration: underline;
+  }
+  .submit-button {
+      padding: 10px 0;
+      margin-top: 8px;
+      margin-bottom: 16px;
+  }
+  .footer-text {
+    text-align: center;
+    font-size: 0.9em;
+    color: rgba(0,0,0,.8);
+  }
+  .alert {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+  }
+  .alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+   .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+   }
+  .alert mat-icon {
+    margin-right: 8px;
+  }
+    .password-requirements {
+        font-size: 0.8em;
+        margin-top: -10px;
+        margin-bottom: 10px;
+        padding-left: 0;
+    }
+    .password-requirements mat-list-item {
+        height: 20px !important;
+        color: rgba(0,0,0,0.6);
+    }
+     .password-requirements mat-list-item.met {
+        color: green;
+     }
+    .password-requirements .requirement-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+     }
+     .mat-mdc-list-item-icon {
+         color: inherit !important;
+     }
+</style>

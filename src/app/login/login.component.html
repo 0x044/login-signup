@@ -1,131 +1,119 @@
-<div class="login-container">
-  <!-- Left Side - Branding -->
-  <div class="branding-section">
-    <div class="branding-content">
-      <div class="logo-wrapper">
-        <i class="fas fa-home"></i>
-        <h1 class="brand-name">SpaceFinders</h1>
-      </div>
-      <h2 class="brand-tagline">Find your perfect space</h2>
-      <p class="brand-description">
-        Discover unique properties and comfortable stays around the world. 
-        Your next adventure starts here.
-      </p>
-      <div class="feature-list">
-        <div class="feature-item">
-          <i class="fas fa-check-circle"></i>
-          <span>Verified Properties</span>
-        </div>
-        <div class="feature-item">
-          <i class="fas fa-check-circle"></i>
-          <span>Secure Payments</span>
-        </div>
-        <div class="feature-item">
-          <i class="fas fa-check-circle"></i>
-          <span>24/7 Support</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right Side - Login Form -->
-  <div class="form-section">
-    <div class="form-wrapper">
-      <button class="back-button" (click)="navigateToHome()" aria-label="Back to home">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-
-      <div class="form-header">
-        <h1>Welcome back</h1>
-        <p>Sign in to your account to continue</p>
-      </div>
-
-      <!-- Error Alert -->
-      <div class="alert alert-danger" *ngIf="errorMessage" role="alert">
-        <i class="fas fa-exclamation-circle"></i>
+<div class="center-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Welcome back</mat-card-title>
+      <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="errorMessage" class="alert alert-danger" role="alert" style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 16px; display: flex; align-items: center;">
+        <mat-icon style="margin-right: 8px;">error_outline</mat-icon>
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Login Form -->
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-        <!-- Username Field -->
-        <div class="form-group">
-          <label for="username" class="form-label">Username</label>
-          <div class="input-wrapper">
-            <i class="fas fa-user input-icon"></i>
-            <input
-              type="text"
-              id="username"
-              class="form-control"
-              [class.is-invalid]="username?.invalid && username?.touched"
-              formControlName="username"
-              placeholder="Enter your username"
-              autocomplete="username"
-            />
-          </div>
-          <div class="error-message" *ngIf="username?.invalid && username?.touched">
-            <small *ngIf="username?.errors?.['required']">Username is required</small>
-            <small *ngIf="username?.errors?.['minlength']">Username must be at least 3 characters</small>
-            <small *ngIf="username?.errors?.['maxlength']">Username cannot exceed 20 characters</small>
-          </div>
-        </div>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <input matInput
+                 id="username"
+                 formControlName="username"
+                 placeholder="Enter your username"
+                 autocomplete="username"
+                 required>
+          <mat-icon matPrefix>person_outline</mat-icon>
+          <mat-error *ngIf="username?.invalid && username?.touched">
+            {{ getErrorMessage('username') }}
+          </mat-error>
+        </mat-form-field>
 
-        <!-- Password Field -->
-        <div class="form-group">
-          <label for="password" class="form-label">Password</label>
-          <div class="input-wrapper">
-            <i class="fas fa-lock input-icon"></i>
-            <input
-              [type]="showPassword ? 'text' : 'password'"
-              id="password"
-              class="form-control"
-              [class.is-invalid]="password?.invalid && password?.touched"
-              formControlName="password"
-              placeholder="Enter your password"
-              autocomplete="current-password"
-            />
-            <button
-              type="button"
-              class="toggle-password"
-              (click)="togglePasswordVisibility()"
-              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
-            >
-              <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-            </button>
-          </div>
-          <div class="error-message" *ngIf="password?.invalid && password?.touched">
-            <small *ngIf="password?.errors?.['required']">Password is required</small>
-            <small *ngIf="password?.errors?.['minlength']">Password must be at least 8 characters</small>
-          </div>
-        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput
+                 [type]="showPassword ? 'text' : 'password'"
+                 id="password"
+                 formControlName="password"
+                 placeholder="Enter your password"
+                 autocomplete="current-password"
+                 required>
+          <mat-icon matPrefix>lock_outline</mat-icon>
+          <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            <mat-icon>{{showPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="password?.invalid && password?.touched">
+            {{ getErrorMessage('password') }}
+          </mat-error>
+        </mat-form-field>
 
-        <!-- Remember & Forgot -->
         <div class="form-options">
-          <a href="#" class="forgot-link">Forgot password?</a>
+          <a mat-button color="primary" (click)="navigateToForgotPassword()" class="forgot-link">Forgot password?</a>
         </div>
 
-        <!-- Submit Button -->
-        <button mat-raised-button color="primary" type="submit" class="btn btn-primary" [disabled]="isLoading">
+        <button mat-raised-button color="primary" type="submit" class="full-width submit-button" [disabled]="isLoading || loginForm.invalid">
           <span *ngIf="!isLoading">Sign in</span>
-          <span *ngIf="isLoading">
-            <i class="fas fa-spinner fa-spin"></i> Signing in...
+          <span *ngIf="isLoading" style="display: flex; align-items: center; justify-content: center;">
+            <mat-spinner diameter="20" style="margin-right: 8px;"></mat-spinner>
+            Signing in...
           </span>
         </button>
       </form>
 
-      <!-- Divider -->
-      <div class="divider">
-        <span>or</span>
-      </div>
-
-      <!-- Sign Up Link -->
       <div class="signup-section">
-        <p>Don't have an account? 
-          <button type="button" class="link-button" (click)="navigateToSignup()">
+        <p>Don't have an account?
+          <button mat-button color="primary" type="button" (click)="navigateToSignup()">
             Sign up
           </button>
         </p>
       </div>
-    </div>
-  </div>
+
+    </mat-card-content>
+  </mat-card>
 </div>
+
+<style>
+  .login-card {
+    max-width: 400px;
+    width: 100%;
+  }
+  .full-width {
+    width: 100%;
+    margin-bottom: 16px; /* Spacing between fields */
+  }
+  .form-options {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+  }
+  .forgot-link {
+    font-size: 0.9em;
+  }
+  .submit-button {
+      padding: 10px 0;
+      margin-top: 8px;
+  }
+  .divider {
+    margin: 24px 0;
+    position: relative;
+  }
+  .signup-section {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.9em;
+  }
+  .signup-section p {
+    margin: 0;
+    color: rgba(0,0,0,.8);
+  }
+    .alert {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+  }
+  .alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  .alert mat-icon {
+    margin-right: 8px;
+  }
+</style>

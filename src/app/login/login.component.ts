@@ -1,11 +1,23 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { catchError, tap } from 'rxjs/operators';
-import { throwError } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from "@angular/common";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { Component, OnInit } from "@angular/core";
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from "@angular/forms";
+import { MatButtonModule } from "@angular/material/button";
+import { MatCardModule } from "@angular/material/card";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
+import { MatIconModule } from "@angular/material/icon";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatDividerModule } from "@angular/material/divider";
+import { Router } from "@angular/router";
+import { throwError } from "rxjs";
+import { catchError, tap } from "rxjs/operators";
 // ============================================================================
 // INTERFACES - All type definitions in one place
 // ============================================================================
@@ -39,71 +51,58 @@ interface ErrorResponse {
 // ============================================================================
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
+  selector: "app-login",
+  templateUrl: "./login.component.html",
+  styleUrls: ["./login.component.css"],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule]
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatDividerModule,
+  ],
 })
 export class LoginComponent implements OnInit {
-  
-  // ==========================================================================
-  // API CONFIGURATION
-  // ==========================================================================
-  private readonly API_BASE_URL = 'http://localhost:8080/v1/api';
+  private readonly API_BASE_URL = "http://localhost:8080/v1/api";
   private readonly LOGIN_ENDPOINT = `${this.API_BASE_URL}/user/loginUser`;
   private readonly LOGOUT_ENDPOINT = `${this.API_BASE_URL}/user/logoutUser`;
 
-  // ==========================================================================
-  // DEBUGGING FLAG
-  // ==========================================================================
   private readonly DEBUG_MODE = true; // Set to false in production
 
-  // ==========================================================================
-  // FORM AND UI STATE
-  // ==========================================================================
   loginForm!: FormGroup;
   showPassword = false;
   isLoading = false;
-  errorMessage = '';
-  successMessage = '';
+  errorMessage = "";
+  successMessage = "";
 
-  // ==========================================================================
-  // SESSION STORAGE KEYS
-  // ==========================================================================
   private readonly STORAGE_KEYS = {
-    CURRENT_USER: 'currentUser',
-    USER_ID: 'userId',
-    USER_ROLE: 'userRole',
-    USERNAME: 'username',
-    USER_EMAIL: 'userEmail'
+    CURRENT_USER: "currentUser",
+    USER_ID: "userId",
+    USER_ROLE: "userRole",
+    USERNAME: "username",
+    USER_EMAIL: "userEmail",
   };
 
-  // ==========================================================================
-  // CONSTRUCTOR
-  // ==========================================================================
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
   ) {
-    this.debugLog('🏗️ LoginComponent constructor called');
+    this.debugLog("🏗️ LoginComponent constructor called");
   }
 
-  // ==========================================================================
-  // LIFECYCLE HOOKS
-  // ==========================================================================
-  
   ngOnInit(): void {
-    this.debugLog('🔄 LoginComponent initialized');
+    this.debugLog("🔄 LoginComponent initialized");
     this.initializeForm();
     this.checkExistingSession();
   }
 
-  // ==========================================================================
-  // DEBUGGING UTILITY
-  // ==========================================================================
-  
   /**
    * Centralized debug logging
    */
@@ -112,205 +111,173 @@ export class LoginComponent implements OnInit {
       const timestamp = new Date().toLocaleTimeString();
       console.log(`[${timestamp}] ${message}`);
       if (data !== undefined) {
-        console.log('📦 Data:', data);
+        console.log("📦 Data:", data);
       }
     }
   }
 
-  /**
-   * Log error with styling
-   */
   private debugError(message: string, error?: any): void {
     if (this.DEBUG_MODE) {
       const timestamp = new Date().toLocaleTimeString();
       console.error(`[${timestamp}] ❌ ${message}`);
       if (error !== undefined) {
-        console.error('Error details:', error);
+        console.error("Error details:", error);
       }
     }
   }
 
-  /**
-   * Log success with styling
-   */
   private debugSuccess(message: string, data?: any): void {
     if (this.DEBUG_MODE) {
       const timestamp = new Date().toLocaleTimeString();
-      console.log(`%c[${timestamp}] ✅ ${message}`, 'color: green; font-weight: bold;');
+      console.log(
+        `%c[${timestamp}] ✅ ${message}`,
+        "color: green; font-weight: bold;",
+      );
       if (data !== undefined) {
-        console.log('📦 Data:', data);
+        console.log("📦 Data:", data);
       }
     }
   }
 
-  /**
-   * Log warning
-   */
   private debugWarn(message: string, data?: any): void {
     if (this.DEBUG_MODE) {
       const timestamp = new Date().toLocaleTimeString();
       console.warn(`[${timestamp}] ⚠️ ${message}`);
       if (data !== undefined) {
-        console.warn('Data:', data);
+        console.warn("Data:", data);
       }
     }
   }
 
-  // ==========================================================================
-  // FORM INITIALIZATION
-  // ==========================================================================
-  
-  /**
-   * Initialize the login form with validators matching backend requirements
-   */
   private initializeForm(): void {
-    this.debugLog('📝 Initializing login form with validators');
-    
+    this.debugLog("📝 Initializing login form with validators");
+
     this.loginForm = this.fb.group({
       username: [
-        '',
+        "",
         [
           Validators.required,
           Validators.minLength(3),
           Validators.maxLength(20),
-          this.noWhitespaceValidator
-        ]
+          this.noWhitespaceValidator,
+        ],
       ],
       password: [
-        '',
+        "",
         [
           Validators.required,
           Validators.minLength(8),
-          Validators.maxLength(20)
-        ]
-      ]
+          Validators.maxLength(20),
+        ],
+      ],
     });
 
-    this.debugSuccess('Form initialized successfully', {
+    this.debugSuccess("Form initialized successfully", {
       controls: Object.keys(this.loginForm.controls),
-      validators: 'Username: required, minLength(3), maxLength(20), noWhitespace | Password: required, minLength(8), maxLength(20)'
+      validators:
+        "Username: required, minLength(3), maxLength(20), noWhitespace | Password: required, minLength(8), maxLength(20)",
     });
   }
 
-  // ==========================================================================
-  // CUSTOM VALIDATORS
-  // ==========================================================================
-  
-  /**
-   * Custom validator to prevent whitespace-only values
-   */
-  private noWhitespaceValidator(control: AbstractControl): { [key: string]: boolean } | null {
-    const isWhitespace = (control.value || '').trim().length === 0;
+  private noWhitespaceValidator(
+    control: AbstractControl,
+  ): { [key: string]: boolean } | null {
+    const isWhitespace = (control.value || "").trim().length === 0;
     return isWhitespace ? { whitespace: true } : null;
   }
 
-  // ==========================================================================
-  // FORM GETTERS
-  // ==========================================================================
-  
-  /**
-   * Getter for username form control
-   */
   get username(): AbstractControl | null {
-    return this.loginForm.get('username');
+    return this.loginForm.get("username");
   }
 
-  /**
-   * Getter for password form control
-   */
   get password(): AbstractControl | null {
-    return this.loginForm.get('password');
+    return this.loginForm.get("password");
   }
 
-  // ==========================================================================
-  // SESSION MANAGEMENT
-  // ==========================================================================
-  
-  /**
-   * Check if user is already logged in and redirect accordingly
-   */
   private checkExistingSession(): void {
-    this.debugLog('🔍 Checking for existing session...');
-    
+    this.debugLog("🔍 Checking for existing session...");
+
     const currentUser = this.getCurrentUser();
-    
+
     if (currentUser) {
-      this.debugSuccess('Existing session found!', {
+      this.debugSuccess("Existing session found!", {
         userId: currentUser.userId,
         username: currentUser.username,
         email: currentUser.email,
-        role: currentUser.role
+        role: currentUser.role,
       });
-      
-      console.log('%c👤 User is already logged in!', 'color: blue; font-weight: bold; font-size: 14px;');
+
+      console.log(
+        "%c👤 User is already logged in!",
+        "color: blue; font-weight: bold; font-size: 14px;",
+      );
       console.table({
-        'User ID': currentUser.userId,
-        'Username': currentUser.username,
-        'Email': currentUser.email,
-        'Role': currentUser.role
+        "User ID": currentUser.userId,
+        Username: currentUser.username,
+        Email: currentUser.email,
+        Role: currentUser.role,
       });
-      
+
       this.navigateBasedOnRole(currentUser.role);
     } else {
-      this.debugLog('No existing session found. User needs to login.');
+      this.debugLog("No existing session found. User needs to login.");
     }
   }
 
-  /**
-   * Store user data in session storage
-   */
   private setCurrentUser(user: LoginResponse): void {
-    this.debugLog('💾 Creating session storage for user...');
-    
+    this.debugLog("💾 Creating session storage for user...");
+
     try {
-      sessionStorage.setItem(this.STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+      sessionStorage.setItem(
+        this.STORAGE_KEYS.CURRENT_USER,
+        JSON.stringify(user),
+      );
       sessionStorage.setItem(this.STORAGE_KEYS.USER_ID, user.userId.toString());
       sessionStorage.setItem(this.STORAGE_KEYS.USER_ROLE, user.role);
       sessionStorage.setItem(this.STORAGE_KEYS.USERNAME, user.username);
       sessionStorage.setItem(this.STORAGE_KEYS.USER_EMAIL, user.email);
-      
-      this.debugSuccess('✨ SESSION CREATED SUCCESSFULLY! ✨');
-      console.log('%c🎉 Session Storage Created!', 'color: green; font-weight: bold; font-size: 16px; background: #e8f5e9; padding: 5px;');
-      console.group('📋 Session Details:');
-      console.log('├─ User ID:', user.userId);
-      console.log('├─ Username:', user.username);
-      console.log('├─ Email:', user.email);
-      console.log('└─ Role:', user.role);
+
+      this.debugSuccess("✨ SESSION CREATED SUCCESSFULLY! ✨");
+      console.log(
+        "%c🎉 Session Storage Created!",
+        "color: green; font-weight: bold; font-size: 16px; background: #e8f5e9; padding: 5px;",
+      );
+      console.group("📋 Session Details:");
+      console.log("├─ User ID:", user.userId);
+      console.log("├─ Username:", user.username);
+      console.log("├─ Email:", user.email);
+      console.log("└─ Role:", user.role);
       console.groupEnd();
-      
+
       // Verify session was created
       this.verifySession();
-      
     } catch (error) {
-      this.debugError('Failed to store user data in session storage', error);
+      this.debugError("Failed to store user data in session storage", error);
     }
   }
 
-  /**
-   * Verify session storage contents
-   */
   private verifySession(): void {
-    this.debugLog('🔐 Verifying session storage...');
-    
+    this.debugLog("🔐 Verifying session storage...");
+
     const sessionData = {
-      'Current User': sessionStorage.getItem(this.STORAGE_KEYS.CURRENT_USER),
-      'User ID': sessionStorage.getItem(this.STORAGE_KEYS.USER_ID),
-      'User Role': sessionStorage.getItem(this.STORAGE_KEYS.USER_ROLE),
-      'Username': sessionStorage.getItem(this.STORAGE_KEYS.USERNAME),
-      'User Email': sessionStorage.getItem(this.STORAGE_KEYS.USER_EMAIL)
+      "Current User": sessionStorage.getItem(this.STORAGE_KEYS.CURRENT_USER),
+      "User ID": sessionStorage.getItem(this.STORAGE_KEYS.USER_ID),
+      "User Role": sessionStorage.getItem(this.STORAGE_KEYS.USER_ROLE),
+      Username: sessionStorage.getItem(this.STORAGE_KEYS.USERNAME),
+      "User Email": sessionStorage.getItem(this.STORAGE_KEYS.USER_EMAIL),
     };
-    
-    console.log('%c✓ Session Verification:', 'color: blue; font-weight: bold;');
+
+    console.log("%c✓ Session Verification:", "color: blue; font-weight: bold;");
     console.table(sessionData);
-    
-    const allKeysPresent = Object.values(this.STORAGE_KEYS).every(key => 
-      sessionStorage.getItem(key) !== null
+
+    const allKeysPresent = Object.values(this.STORAGE_KEYS).every(
+      (key) => sessionStorage.getItem(key) !== null,
     );
-    
+
     if (allKeysPresent) {
-      this.debugSuccess('All session keys verified successfully!');
+      this.debugSuccess("All session keys verified successfully!");
     } else {
-      this.debugWarn('Some session keys are missing!');
+      this.debugWarn("Some session keys are missing!");
     }
   }
 
@@ -318,166 +285,137 @@ export class LoginComponent implements OnInit {
    * Retrieve current user from session storage
    */
   private getCurrentUser(): LoginResponse | null {
-    this.debugLog('🔎 Attempting to retrieve user from session storage...');
-    
+    this.debugLog("🔎 Attempting to retrieve user from session storage...");
+
     const userJson = sessionStorage.getItem(this.STORAGE_KEYS.CURRENT_USER);
-    
+
     if (userJson) {
       try {
         const user = JSON.parse(userJson) as LoginResponse;
-        this.debugSuccess('User data retrieved from session', user);
+        this.debugSuccess("User data retrieved from session", user);
         return user;
       } catch (error) {
-        this.debugError('Error parsing user data from session storage', error);
+        this.debugError("Error parsing user data from session storage", error);
         this.clearSession();
         return null;
       }
     }
-    
-    this.debugLog('No user data found in session storage');
+
+    this.debugLog("No user data found in session storage");
     return null;
   }
 
-  /**
-   * Clear all session storage data
-   */
   private clearSession(): void {
-    this.debugLog('🧹 Clearing session storage...');
-    
-    const keysBeforeClear = Object.values(this.STORAGE_KEYS).map(key => ({
+    this.debugLog("🧹 Clearing session storage...");
+
+    const keysBeforeClear = Object.values(this.STORAGE_KEYS).map((key) => ({
       key,
-      value: sessionStorage.getItem(key)
+      value: sessionStorage.getItem(key),
     }));
-    
-    Object.values(this.STORAGE_KEYS).forEach(key => {
+
+    Object.values(this.STORAGE_KEYS).forEach((key) => {
       sessionStorage.removeItem(key);
     });
-    
-    console.log('%c🗑️ Session Cleared!', 'color: orange; font-weight: bold;');
-    console.log('Keys removed:', keysBeforeClear);
-    
-    this.debugSuccess('Session storage cleared successfully');
+
+    console.log("%c🗑️ Session Cleared!", "color: orange; font-weight: bold;");
+    console.log("Keys removed:", keysBeforeClear);
+
+    this.debugSuccess("Session storage cleared successfully");
   }
 
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated(): boolean {
     const authenticated = this.getCurrentUser() !== null;
-    this.debugLog(`Authentication check: ${authenticated ? '✅ Authenticated' : '❌ Not authenticated'}`);
+    this.debugLog(
+      `Authentication check: ${authenticated ? "✅ Authenticated" : "❌ Not authenticated"}`,
+    );
     return authenticated;
   }
 
-  /**
-   * Get user role from session
-   */
   getUserRole(): string | null {
     const role = sessionStorage.getItem(this.STORAGE_KEYS.USER_ROLE);
-    this.debugLog('Retrieved user role:', role);
+    this.debugLog("Retrieved user role:", role);
     return role;
   }
 
-  /**
-   * Get user ID from session
-   */
   getUserId(): string | null {
     const userId = sessionStorage.getItem(this.STORAGE_KEYS.USER_ID);
-    this.debugLog('Retrieved user ID:', userId);
     return userId;
   }
 
-  // ==========================================================================
-  // UI INTERACTIONS
-  // ==========================================================================
-  
-  /**
-   * Toggle password visibility
-   */
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
-    this.debugLog(`Password visibility toggled: ${this.showPassword ? 'Visible' : 'Hidden'}`);
   }
 
-  /**
-   * Navigate to signup page
-   */
   navigateToSignup(): void {
-    this.debugLog('🔄 Navigating to signup page');
-    this.router.navigate(['/signup']);
+    this.debugLog("🔄 Navigating to signup page");
+    this.router.navigate(["/addUser"]);
   }
 
-  /**
-   * Navigate to home page
-   */
   navigateToHome(): void {
-    this.debugLog('🔄 Navigating to home page');
-    this.router.navigate(['/']);
+    this.debugLog("🔄 Navigating to home page");
+    this.router.navigate(["/"]);
   }
 
-  /**
-   * Navigate to forgot password page
-   */
   navigateToForgotPassword(): void {
-    this.debugLog('🔄 Navigating to reset password page');
-    this.router.navigate(['/reset-password']);
+    this.debugLog("🔄 Navigating to reset password page");
+    this.router.navigate(["/reset-password"]);
   }
 
-  // ==========================================================================
-  // FORM SUBMISSION AND LOGIN
-  // ==========================================================================
-  
-  /**
-   * Handle form submission
-   */
   onSubmit(): void {
-    console.log('%c🚀 LOGIN ATTEMPT STARTED', 'color: purple; font-weight: bold; font-size: 14px; background: #f3e5f5; padding: 5px;');
-    
+    console.log(
+      "%c🚀 LOGIN ATTEMPT STARTED",
+      "color: purple; font-weight: bold; font-size: 14px; background: #f3e5f5; padding: 5px;",
+    );
+
     // Clear previous messages
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.errorMessage = "";
+    this.successMessage = "";
 
     // Log form state
-    this.debugLog('Form submission initiated', {
+    this.debugLog("Form submission initiated", {
       formValid: this.loginForm.valid,
       formValue: {
         username: this.loginForm.value.username,
-        password: '***hidden***'
+        password: "***hidden***",
       },
-      formErrors: this.loginForm.errors
+      formErrors: this.loginForm.errors,
     });
 
     // Validate form
     if (this.loginForm.invalid) {
-      this.debugWarn('Form validation failed');
+      this.debugWarn("Form validation failed");
       this.markFormGroupTouched(this.loginForm);
-      
-      console.group('❌ Form Validation Errors:');
-      Object.keys(this.loginForm.controls).forEach(key => {
+
+      console.group("❌ Form Validation Errors:");
+      Object.keys(this.loginForm.controls).forEach((key) => {
         const control = this.loginForm.get(key);
         if (control && control.errors) {
           console.log(`├─ ${key}:`, control.errors);
         }
       });
       console.groupEnd();
-      
-      this.errorMessage = 'Please fill in all required fields correctly.';
+
+      this.errorMessage = "Please fill in all required fields correctly.";
       return;
     }
 
-    this.debugSuccess('Form validation passed');
-    
+    this.debugSuccess("Form validation passed");
+
     // Start loading
     this.isLoading = true;
 
     // Prepare login request
     const loginRequest: UserLoginRequest = {
       username: this.loginForm.value.username.trim(),
-      password: this.loginForm.value.password
+      password: this.loginForm.value.password,
     };
 
-    console.log('%c📤 Sending API Request', 'color: blue; font-weight: bold;');
-    console.log('Endpoint:', this.LOGIN_ENDPOINT);
-    console.log('Request Data:', { username: loginRequest.username, password: '***hidden***' });
+    console.log("%c📤 Sending API Request", "color: blue; font-weight: bold;");
+    console.log("Endpoint:", this.LOGIN_ENDPOINT);
+    console.log("Request Data:", {
+      username: loginRequest.username,
+      password: "***hidden***",
+    });
 
     // Make API call
     this.performLogin(loginRequest);
@@ -487,52 +425,62 @@ export class LoginComponent implements OnInit {
    * Perform the login API call
    */
   private performLogin(loginRequest: UserLoginRequest): void {
-    this.debugLog('🌐 Making HTTP POST request to login endpoint');
-    
+    this.debugLog("🌐 Making HTTP POST request to login endpoint");
+
     const startTime = Date.now();
-    
-    this.http.post<ApiResponse<LoginResponse>>(this.LOGIN_ENDPOINT, loginRequest)
+
+    this.http
+      .post<ApiResponse<LoginResponse>>(this.LOGIN_ENDPOINT, loginRequest)
       .pipe(
         tap((response: ApiResponse<LoginResponse>) => {
           const endTime = Date.now();
           const duration = endTime - startTime;
-          
-          console.log('%c📥 API Response Received', 'color: green; font-weight: bold;');
+
+          console.log(
+            "%c📥 API Response Received",
+            "color: green; font-weight: bold;",
+          );
           console.log(`⏱️ Response time: ${duration}ms`);
-          console.log('Response:', response);
-          
+          console.log("Response:", response);
+
           if (response.success && response.data) {
-            this.debugSuccess('Login API call successful', response.data);
-            
-            console.log('%c✅ USER VALIDATION SUCCESSFUL!', 'color: green; font-weight: bold; font-size: 16px; background: #e8f5e9; padding: 8px;');
-            console.log('%c👤 User Details:', 'color: blue; font-weight: bold;');
+            this.debugSuccess("Login API call successful", response.data);
+
+            console.log(
+              "%c✅ USER VALIDATION SUCCESSFUL!",
+              "color: green; font-weight: bold; font-size: 16px; background: #e8f5e9; padding: 8px;",
+            );
+            console.log(
+              "%c👤 User Details:",
+              "color: blue; font-weight: bold;",
+            );
             console.table({
-              'User ID': response.data.userId,
-              'Username': response.data.username,
-              'Email': response.data.email,
-              'Role': response.data.role
+              "User ID": response.data.userId,
+              Username: response.data.username,
+              Email: response.data.email,
+              Role: response.data.role,
             });
-            
+
             this.handleLoginSuccess(response.data, response.message);
           } else {
-            this.debugError('Login failed - Invalid response', response);
-            throw new Error(response.message || 'Login failed');
+            this.debugError("Login failed - Invalid response", response);
+            throw new Error(response.message || "Login failed");
           }
         }),
         catchError((error: HttpErrorResponse) => {
           const endTime = Date.now();
           const duration = endTime - startTime;
-          
+
           console.log(`⏱️ Request failed after: ${duration}ms`);
           this.handleLoginError(error);
           return throwError(() => error);
-        })
+        }),
       )
       .subscribe({
         complete: () => {
           this.isLoading = false;
-          this.debugLog('Login HTTP request completed');
-        }
+          this.debugLog("Login HTTP request completed");
+        },
       });
   }
 
@@ -540,19 +488,25 @@ export class LoginComponent implements OnInit {
    * Handle successful login response
    */
   private handleLoginSuccess(loginData: LoginResponse, message: string): void {
-    console.log('%c🎊 LOGIN SUCCESS HANDLER', 'color: green; font-weight: bold; font-size: 14px; background: #e8f5e9; padding: 5px;');
-    
-    this.debugLog('Processing successful login...');
-    
+    console.log(
+      "%c🎊 LOGIN SUCCESS HANDLER",
+      "color: green; font-weight: bold; font-size: 14px; background: #e8f5e9; padding: 5px;",
+    );
+
+    this.debugLog("Processing successful login...");
+
     // Store user data in session storage
     this.setCurrentUser(loginData);
 
     // Show success message
-    this.successMessage = message || 'Login successful! Redirecting...';
+    this.successMessage = message || "Login successful! Redirecting...";
     this.debugSuccess(this.successMessage);
 
-    console.log('%c🔄 Preparing to redirect user...', 'color: blue; font-weight: bold;');
-    console.log('Target role:', loginData.role);
+    console.log(
+      "%c🔄 Preparing to redirect user...",
+      "color: blue; font-weight: bold;",
+    );
+    console.log("Target role:", loginData.role);
 
     // Navigate based on user role after a short delay
     setTimeout(() => {
@@ -564,81 +518,94 @@ export class LoginComponent implements OnInit {
    * Handle login errors with detailed messages
    */
   private handleLoginError(error: HttpErrorResponse): void {
-    console.log('%c❌ LOGIN ERROR HANDLER', 'color: red; font-weight: bold; font-size: 14px; background: #ffebee; padding: 5px;');
-    
+    console.log(
+      "%c❌ LOGIN ERROR HANDLER",
+      "color: red; font-weight: bold; font-size: 14px; background: #ffebee; padding: 5px;",
+    );
+
     this.isLoading = false;
 
-    this.debugError('Login failed', {
+    this.debugError("Login failed", {
       status: error.status,
       statusText: error.statusText,
       error: error.error,
-      message: error.message
+      message: error.message,
     });
 
     // Extract error message from backend
-    if (error.error && typeof error.error === 'object') {
+    if (error.error && typeof error.error === "object") {
       const errorResponse = error.error as ErrorResponse;
-      this.errorMessage = errorResponse.message || 'An error occurred during login.';
-      
-      console.group('🔍 Error Details:');
-      console.log('├─ Success:', errorResponse.success);
-      console.log('├─ Message:', errorResponse.message);
-      console.log('└─ Timestamp:', errorResponse.timestamp);
+      this.errorMessage =
+        errorResponse.message || "An error occurred during login.";
+
+      console.group("🔍 Error Details:");
+      console.log("├─ Success:", errorResponse.success);
+      console.log("├─ Message:", errorResponse.message);
+      console.log("└─ Timestamp:", errorResponse.timestamp);
       console.groupEnd();
-      
     } else if (error.status === 0) {
-      this.errorMessage = 'Unable to connect to the server. Please check your internet connection.';
-      this.debugError('Network error - Server unreachable');
+      this.errorMessage =
+        "Unable to connect to the server. Please check your internet connection.";
+      this.debugError("Network error - Server unreachable");
     } else if (error.status === 401) {
-      this.errorMessage = 'Invalid username or password. Please try again.';
-      this.debugError('Authentication failed - Invalid credentials');
+      this.errorMessage = "Invalid username or password. Please try again.";
+      this.debugError("Authentication failed - Invalid credentials");
     } else if (error.status === 403) {
-      this.errorMessage = 'Your account has been blocked. Please contact support.';
-      this.debugError('Access forbidden - Account blocked');
+      this.errorMessage =
+        "Your account has been blocked. Please contact support.";
+      this.debugError("Access forbidden - Account blocked");
     } else if (error.status === 404) {
-      this.errorMessage = 'User not found. Please register first.';
-      this.debugError('User not found in system');
+      this.errorMessage = "User not found. Please register first.";
+      this.debugError("User not found in system");
     } else if (error.status >= 500) {
-      this.errorMessage = 'Server error. Please try again later.';
-      this.debugError('Server error encountered');
+      this.errorMessage = "Server error. Please try again later.";
+      this.debugError("Server error encountered");
     } else {
-      this.errorMessage = error.message || 'An unexpected error occurred. Please try again.';
-      this.debugError('Unexpected error occurred');
+      this.errorMessage =
+        error.message || "An unexpected error occurred. Please try again.";
+      this.debugError("Unexpected error occurred");
     }
 
-    console.log('%c💬 Error Message Displayed:', 'color: red; font-weight: bold;', this.errorMessage);
+    console.log(
+      "%c💬 Error Message Displayed:",
+      "color: red; font-weight: bold;",
+      this.errorMessage,
+    );
   }
 
   // ==========================================================================
   // NAVIGATION
   // ==========================================================================
-  
+
   /**
    * Navigate user to appropriate dashboard based on role
    */
   private navigateBasedOnRole(role: string): void {
     const roleUpper = role.toUpperCase();
-    
-    console.log('%c🧭 NAVIGATION HANDLER', 'color: purple; font-weight: bold; font-size: 14px; background: #f3e5f5; padding: 5px;');
+
+    console.log(
+      "%c🧭 NAVIGATION HANDLER",
+      "color: purple; font-weight: bold; font-size: 14px; background: #f3e5f5; padding: 5px;",
+    );
     this.debugLog(`Determining navigation route for role: ${roleUpper}`);
 
-    let targetRoute = '';
+    let targetRoute = "";
 
     switch (roleUpper) {
-      case 'ADMIN':
-        targetRoute = '/admin/dashboard';
-        this.debugSuccess('Navigating to ADMIN dashboard');
+      case "ADMIN":
+        targetRoute = "/admin/dashboard";
+        this.debugSuccess("Navigating to ADMIN dashboard");
         break;
-      case 'HOST':
-        targetRoute = '/host/dashboard';
-        this.debugSuccess('Navigating to HOST dashboard');
+      case "HOST":
+        targetRoute = "/host/dashboard";
+        this.debugSuccess("Navigating to HOST dashboard");
         break;
-      case 'CLIENT':
-        targetRoute = '/client/dashboard';
-        this.debugSuccess('Navigating to CLIENT dashboard');
+      case "CLIENT":
+        targetRoute = "/client/dashboard";
+        this.debugSuccess("Navigating to CLIENT dashboard");
         break;
       default:
-        targetRoute = '/';
+        targetRoute = "/";
         this.debugWarn(`Unknown role: ${role}. Navigating to home page`);
         break;
     }
@@ -650,42 +617,49 @@ export class LoginComponent implements OnInit {
   // ==========================================================================
   // LOGOUT FUNCTIONALITY
   // ==========================================================================
-  
+
   /**
    * Logout user and clear session
    */
   logout(): void {
-    console.log('%c🚪 LOGOUT INITIATED', 'color: orange; font-weight: bold; font-size: 14px; background: #fff3e0; padding: 5px;');
-    
+    console.log(
+      "%c🚪 LOGOUT INITIATED",
+      "color: orange; font-weight: bold; font-size: 14px; background: #fff3e0; padding: 5px;",
+    );
+
     const userId = this.getUserId();
-    this.debugLog('Starting logout process', { userId });
+    this.debugLog("Starting logout process", { userId });
 
     if (userId) {
       // Call logout API
       const logoutEndpoint = `${this.LOGOUT_ENDPOINT}/${userId}`;
-      
-      console.log('📤 Calling logout API:', logoutEndpoint);
-      
-      this.http.post<ApiResponse<string>>(logoutEndpoint, {})
+
+      console.log("📤 Calling logout API:", logoutEndpoint);
+
+      this.http
+        .post<ApiResponse<string>>(logoutEndpoint, {})
         .pipe(
           catchError((error: HttpErrorResponse) => {
-            this.debugError('Logout API error', error);
+            this.debugError("Logout API error", error);
             return throwError(() => error);
-          })
+          }),
         )
         .subscribe({
           next: (response) => {
-            this.debugSuccess('Logout API call successful', response);
+            this.debugSuccess("Logout API call successful", response);
           },
           error: (error) => {
-            this.debugError('Logout API failed, proceeding with local logout', error);
+            this.debugError(
+              "Logout API failed, proceeding with local logout",
+              error,
+            );
           },
           complete: () => {
             this.performLogout();
-          }
+          },
         });
     } else {
-      this.debugWarn('No user ID found, performing local logout only');
+      this.debugWarn("No user ID found, performing local logout only");
       this.performLogout();
     }
   }
@@ -694,28 +668,31 @@ export class LoginComponent implements OnInit {
    * Perform logout cleanup and navigation
    */
   private performLogout(): void {
-    this.debugLog('🧹 Performing logout cleanup');
-    
-    console.log('%c👋 User logged out successfully', 'color: blue; font-weight: bold;');
-    
+    this.debugLog("🧹 Performing logout cleanup");
+
+    console.log(
+      "%c👋 User logged out successfully",
+      "color: blue; font-weight: bold;",
+    );
+
     this.clearSession();
     this.loginForm.reset();
-    this.errorMessage = '';
-    this.successMessage = '';
-    
-    this.debugSuccess('Logout completed. Redirecting to login page...');
-    this.router.navigate(['/login']);
+    this.errorMessage = "";
+    this.successMessage = "";
+
+    this.debugSuccess("Logout completed. Redirecting to login page...");
+    this.router.navigate(["/login"]);
   }
 
   // ==========================================================================
   // UTILITY METHODS
   // ==========================================================================
-  
+
   /**
    * Mark all controls in a form group as touched
    */
   private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.keys(formGroup.controls).forEach(key => {
+    Object.keys(formGroup.controls).forEach((key) => {
       const control = formGroup.get(key);
       control?.markAsTouched();
 
@@ -730,23 +707,23 @@ export class LoginComponent implements OnInit {
    */
   getErrorMessage(fieldName: string): string {
     const control = this.loginForm.get(fieldName);
-    
+
     if (control && control.touched && control.errors) {
-      if (control.errors['required']) {
+      if (control.errors["required"]) {
         return `${this.capitalizeFirstLetter(fieldName)} is required.`;
       }
-      if (control.errors['minlength']) {
-        return `${this.capitalizeFirstLetter(fieldName)} must be at least ${control.errors['minlength'].requiredLength} characters.`;
+      if (control.errors["minlength"]) {
+        return `${this.capitalizeFirstLetter(fieldName)} must be at least ${control.errors["minlength"].requiredLength} characters.`;
       }
-      if (control.errors['maxlength']) {
-        return `${this.capitalizeFirstLetter(fieldName)} cannot exceed ${control.errors['maxlength'].requiredLength} characters.`;
+      if (control.errors["maxlength"]) {
+        return `${this.capitalizeFirstLetter(fieldName)} cannot exceed ${control.errors["maxlength"].requiredLength} characters.`;
       }
-      if (control.errors['whitespace']) {
+      if (control.errors["whitespace"]) {
         return `${this.capitalizeFirstLetter(fieldName)} cannot be empty or contain only spaces.`;
       }
     }
-    
-    return '';
+
+    return "";
   }
 
   /**
@@ -768,11 +745,11 @@ export class LoginComponent implements OnInit {
    * Reset form and clear messages
    */
   resetForm(): void {
-    this.debugLog('🔄 Resetting form');
+    this.debugLog("🔄 Resetting form");
     this.loginForm.reset();
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.errorMessage = "";
+    this.successMessage = "";
     this.showPassword = false;
-    this.debugSuccess('Form reset completed');
+    this.debugSuccess("Form reset completed");
   }
 }
