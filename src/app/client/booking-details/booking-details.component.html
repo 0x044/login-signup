@@ -1,0 +1,234 @@
+<div class="booking-details-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>Booking Details</h1>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading booking details...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-message">
+    <mat-icon>error</mat-icon>
+    <p>{{errorMessage}}</p>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="success-message">
+    <mat-icon>check_circle</mat-icon>
+    <p>{{successMessage}}</p>
+  </div>
+
+  <!-- Booking Details Content -->
+  <div *ngIf="!isLoading && booking" class="booking-content">
+    <div class="booking-layout">
+      <!-- Main Booking Info -->
+      <div class="booking-main">
+        <mat-card class="booking-card">
+          <div class="booking-header">
+            <div class="booking-status" [class]="getBookingStatusClass(booking.isBookingStatus)">
+              <mat-icon>{{getBookingStatusIcon(booking.isBookingStatus)}}</mat-icon>
+              {{booking.isBookingStatus}}
+            </div>
+            <div class="booking-id">Booking #{{booking.bookingId}}</div>
+          </div>
+          
+          <div class="booking-image">
+            <img [src]="booking.propertyImage || getDefaultImage()" 
+                 [alt]="booking.propertyName"
+                 (error)="handleImageError($event)">
+          </div>
+          
+          <div class="booking-info">
+            <h2 class="property-name">{{booking.propertyName}}</h2>
+            <p class="property-location">
+              <mat-icon>location_on</mat-icon>
+              {{booking.city}}
+            </p>
+            
+            <div class="booking-dates">
+              <div class="date-section">
+                <h3>Check-in</h3>
+                <div class="date-info">
+                  <mat-icon>login</mat-icon>
+                  <div>
+                    <span class="date">{{formatDate(booking.checkinDate)}}</span>
+                    <span class="time">{{formatDateTime(booking.checkinDate)}}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="date-section">
+                <h3>Check-out</h3>
+                <div class="date-info">
+                  <mat-icon>logout</mat-icon>
+                  <div>
+                    <span class="date">{{formatDate(booking.checkoutDate)}}</span>
+                    <span class="time">{{formatDateTime(booking.checkoutDate)}}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="date-section">
+                <h3>Duration</h3>
+                <div class="date-info">
+                  <mat-icon>nights_stay</mat-icon>
+                  <div>
+                    <span class="date">{{calculateNights(booking.checkinDate, booking.checkoutDate)}} nights</span>
+                    <span class="time">{{calculateNights(booking.checkinDate, booking.checkoutDate) + 1}} days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <mat-divider></mat-divider>
+            
+            <div class="booking-extras" *ngIf="booking.hasExtraCot || booking.hasDeepClean">
+              <h3>Additional Services</h3>
+              <div class="extras-list">
+                <mat-chip *ngIf="booking.hasExtraCot">
+                  <mat-icon matChipAvatar>bed</mat-icon>
+                  Extra Cot
+                </mat-chip>
+                <mat-chip *ngIf="booking.hasDeepClean">
+                  <mat-icon matChipAvatar>cleaning_services</mat-icon>
+                  Deep Clean
+                </mat-chip>
+              </div>
+            </div>
+            
+            <mat-divider></mat-divider>
+            
+            <div class="payment-info">
+              <h3>Payment Information</h3>
+              <div class="payment-status" [class]="getPaymentStatusClass(booking.isPaymentStatus)">
+                <mat-icon>{{booking.isPaymentStatus ? 'check_circle' : 'schedule'}}</mat-icon>
+                <span>{{getPaymentStatusText(booking.isPaymentStatus)}}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+      
+      <!-- Property Details Sidebar -->
+      <div class="property-sidebar" *ngIf="propertyDetails">
+        <mat-card class="property-card">
+          <div class="property-header">
+            <h3>Property Information</h3>
+            <button mat-button color="primary" (click)="viewPropertyDetails()">
+              <mat-icon>visibility</mat-icon>
+              View Full Details
+            </button>
+          </div>
+          
+          <div class="property-image">
+            <img [src]="propertyDetails.imageURL || getDefaultImage()" 
+                 [alt]="propertyDetails.propertyName"
+                 (error)="handleImageError($event)">
+          </div>
+          
+          <div class="property-info">
+            <h4>{{propertyDetails.propertyName}}</h4>
+            <p class="property-address">
+              <mat-icon>location_on</mat-icon>
+              {{propertyDetails.buildingNo}} {{propertyDetails.street}}, {{propertyDetails.city}}, {{propertyDetails.state}}
+            </p>
+            
+            <div class="property-rating" *ngIf="propertyDetails.propertyRate > 0">
+              <span class="rating-stars">{{getRatingStars(propertyDetails.propertyRate)}}</span>
+              <span class="rating-count">({{propertyDetails.propertyRatingCount}} reviews)</span>
+            </div>
+            
+            <div class="property-details">
+              <div class="detail-item">
+                <mat-icon>bed</mat-icon>
+                <span>{{propertyDetails.noOfRooms}} rooms</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>bathtub</mat-icon>
+                <span>{{propertyDetails.noOfBathrooms}} bathrooms</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>group</mat-icon>
+                <span>{{propertyDetails.maxNoOfGuests}} guests</span>
+              </div>
+            </div>
+            
+            <div class="property-amenities">
+              <h5>Amenities</h5>
+              <div class="amenities-list">
+                <mat-chip *ngIf="propertyDetails.hasWifi">
+                  <mat-icon matChipAvatar>wifi</mat-icon>
+                  WiFi
+                </mat-chip>
+                <mat-chip *ngIf="propertyDetails.hasParking">
+                  <mat-icon matChipAvatar>local_parking</mat-icon>
+                  Parking
+                </mat-chip>
+                <mat-chip *ngIf="propertyDetails.hasPool">
+                  <mat-icon matChipAvatar>pool</mat-icon>
+                  Pool
+                </mat-chip>
+                <mat-chip *ngIf="propertyDetails.hasAc">
+                  <mat-icon matChipAvatar>ac_unit</mat-icon>
+                  AC
+                </mat-chip>
+                <mat-chip *ngIf="propertyDetails.hasHeater">
+                  <mat-icon matChipAvatar>whatshot</mat-icon>
+                  Heater
+                </mat-chip>
+                <mat-chip *ngIf="propertyDetails.hasPetFriendly">
+                  <mat-icon matChipAvatar>pets</mat-icon>
+                  Pet Friendly
+                </mat-chip>
+              </div>
+            </div>
+            
+            <div class="property-host">
+              <h5>Host Information</h5>
+              <div class="host-info">
+                <div class="host-name">
+                  <mat-icon>person</mat-icon>
+                  <span>{{propertyDetails.hostName}}</span>
+                </div>
+                <div class="host-phone">
+                  <mat-icon>phone</mat-icon>
+                  <span>{{propertyDetails.hostPhone}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+        
+        <!-- Pricing Card -->
+        <mat-card class="pricing-card">
+          <h3>Pricing Breakdown</h3>
+          <div class="pricing-details">
+            <div class="price-item">
+              <span class="price-label">Price per night</span>
+              <span class="price-value">{{formatPrice(propertyDetails.pricePerDay)}}</span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">{{calculateNights(booking.checkinDate, booking.checkoutDate)}} nights</span>
+              <span class="price-value">{{formatPrice(calculateTotalPrice(propertyDetails.pricePerDay, calculateNights(booking.checkinDate, booking.checkoutDate)))}}</span>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="price-item total">
+              <span class="price-label">Total</span>
+              <span class="price-value">{{formatPrice(calculateTotalPrice(propertyDetails.pricePerDay, calculateNights(booking.checkinDate, booking.checkoutDate)))}}</span>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>
+

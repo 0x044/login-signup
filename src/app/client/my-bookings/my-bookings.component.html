@@ -1,0 +1,402 @@
+<div class="my-bookings-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>My Bookings</h1>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading your bookings...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-message">
+    <mat-icon>error</mat-icon>
+    <p>{{errorMessage}}</p>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="success-message">
+    <mat-icon>check_circle</mat-icon>
+    <p>{{successMessage}}</p>
+  </div>
+
+  <!-- Bookings Content -->
+  <div *ngIf="!isLoading" class="bookings-content">
+    <!-- Tabs -->
+    <mat-tab-group (selectedTabChange)="onTabChange($event)" class="bookings-tabs">
+      <!-- Upcoming Bookings Tab -->
+      <mat-tab label="Upcoming ({{upcomingBookings.length}})">
+        <div class="tab-content">
+          <div *ngIf="upcomingBookings.length === 0" class="no-bookings">
+            <mat-icon>event_available</mat-icon>
+            <h3>No upcoming bookings</h3>
+            <p>You don't have any upcoming bookings at the moment.</p>
+            <button mat-raised-button color="primary" (click)="router.navigate(['/client/search-properties'])">
+              <mat-icon>search</mat-icon>
+              Search Properties
+            </button>
+          </div>
+          
+          <div *ngIf="upcomingBookings.length > 0" class="bookings-grid">
+            <mat-card *ngFor="let booking of upcomingBookings" class="booking-card">
+              <div class="booking-image">
+                <img [src]="booking.propertyImage || getDefaultImage()" 
+                     [alt]="booking.propertyName"
+                     (error)="handleImageError($event)">
+                <div class="booking-status" [class]="getBookingStatusClass(booking.isBookingStatus)">
+                  <mat-icon>{{getBookingStatusIcon(booking.isBookingStatus)}}</mat-icon>
+                  {{booking.isBookingStatus}}
+                </div>
+              </div>
+              
+              <div class="booking-content">
+                <div class="booking-header">
+                  <h3 class="property-name">{{booking.propertyName}}</h3>
+                  <div class="payment-status" [class]="getPaymentStatusClass(booking.isPaymentStatus)">
+                    <mat-icon>{{booking.isPaymentStatus ? 'check_circle' : 'schedule'}}</mat-icon>
+                    {{getPaymentStatusText(booking.isPaymentStatus)}}
+                  </div>
+                </div>
+                
+                <p class="booking-location">
+                  <mat-icon>location_on</mat-icon>
+                  {{booking.city}}
+                </p>
+                
+                <div class="booking-dates">
+                  <div class="date-item">
+                    <mat-icon>login</mat-icon>
+                    <div>
+                      <span class="date-label">Check-in</span>
+                      <span class="date-value">{{formatDate(booking.checkinDate)}}</span>
+                    </div>
+                  </div>
+                  <div class="date-item">
+                    <mat-icon>logout</mat-icon>
+                    <div>
+                      <span class="date-label">Check-out</span>
+                      <span class="date-value">{{formatDate(booking.checkoutDate)}}</span>
+                    </div>
+                  </div>
+                  <div class="date-item">
+                    <mat-icon>nights_stay</mat-icon>
+                    <div>
+                      <span class="date-label">Duration</span>
+                      <span class="date-value">{{calculateNights(booking.checkinDate, booking.checkoutDate)}} nights</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="booking-extras" *ngIf="booking.hasExtraCot || booking.hasDeepClean">
+                  <h4>Extras:</h4>
+                  <div class="extras-list">
+                    <mat-chip *ngIf="booking.hasExtraCot">
+                      <mat-icon matChipAvatar>bed</mat-icon>
+                      Extra Cot
+                    </mat-chip>
+                    <mat-chip *ngIf="booking.hasDeepClean">
+                      <mat-icon matChipAvatar>cleaning_services</mat-icon>
+                      Deep Clean
+                    </mat-chip>
+                  </div>
+                </div>
+                
+                <div class="booking-actions">
+                  <button mat-button (click)="viewBookingDetails(booking)" class="view-details">
+                    <mat-icon>visibility</mat-icon>
+                    View Details
+                  </button>
+                  
+                  <button mat-icon-button [matMenuTriggerFor]="bookingMenu" class="more-actions">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  
+                  <mat-menu #bookingMenu="matMenu">
+                    <button mat-menu-item (click)="modifyBooking(booking)" 
+                            [disabled]="!isBookingActionable(booking)">
+                      <mat-icon>edit</mat-icon>
+                      Modify
+                    </button>
+                    <button mat-menu-item (click)="cancelBooking(booking)" 
+                            [disabled]="!isBookingActionable(booking)">
+                      <mat-icon>cancel</mat-icon>
+                      Cancel
+                    </button>
+                    <button mat-menu-item (click)="viewPropertyDetails(booking.propertyId)">
+                      <mat-icon>home</mat-icon>
+                      View Property
+                    </button>
+                  </mat-menu>
+                </div>
+              </div>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+      
+      <!-- Current Bookings Tab -->
+      <mat-tab label="Current ({{currentBookings.length}})">
+        <div class="tab-content">
+          <div *ngIf="currentBookings.length === 0" class="no-bookings">
+            <mat-icon>event</mat-icon>
+            <h3>No current bookings</h3>
+            <p>You don't have any ongoing bookings at the moment.</p>
+          </div>
+          
+          <div *ngIf="currentBookings.length > 0" class="bookings-grid">
+            <mat-card *ngFor="let booking of currentBookings" class="booking-card current-booking">
+              <div class="booking-image">
+                <img [src]="booking.propertyImage || getDefaultImage()" 
+                     [alt]="booking.propertyName"
+                     (error)="handleImageError($event)">
+                <div class="booking-status current-status">
+                  <mat-icon>hotel</mat-icon>
+                  Currently Staying
+                </div>
+              </div>
+              
+              <div class="booking-content">
+                <div class="booking-header">
+                  <h3 class="property-name">{{booking.propertyName}}</h3>
+                  <div class="payment-status" [class]="getPaymentStatusClass(booking.isPaymentStatus)">
+                    <mat-icon>{{booking.isPaymentStatus ? 'check_circle' : 'schedule'}}</mat-icon>
+                    {{getPaymentStatusText(booking.isPaymentStatus)}}
+                  </div>
+                </div>
+                
+                <p class="booking-location">
+                  <mat-icon>location_on</mat-icon>
+                  {{booking.city}}
+                </p>
+                
+                <div class="booking-dates">
+                  <div class="date-item">
+                    <mat-icon>login</mat-icon>
+                    <div>
+                      <span class="date-label">Check-in</span>
+                      <span class="date-value">{{formatDate(booking.checkinDate)}}</span>
+                    </div>
+                  </div>
+                  <div class="date-item">
+                    <mat-icon>logout</mat-icon>
+                    <div>
+                      <span class="date-label">Check-out</span>
+                      <span class="date-value">{{formatDate(booking.checkoutDate)}}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="booking-actions">
+                  <button mat-button (click)="viewBookingDetails(booking)" class="view-details">
+                    <mat-icon>visibility</mat-icon>
+                    View Details
+                  </button>
+                  
+                  <button mat-icon-button [matMenuTriggerFor]="currentBookingMenu" class="more-actions">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  
+                  <mat-menu #currentBookingMenu="matMenu">
+                    <button mat-menu-item (click)="addReview(booking)">
+                      <mat-icon>rate_review</mat-icon>
+                      Add Review
+                    </button>
+                    <button mat-menu-item (click)="viewPropertyDetails(booking.propertyId)">
+                      <mat-icon>home</mat-icon>
+                      View Property
+                    </button>
+                  </mat-menu>
+                </div>
+              </div>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+      
+      <!-- Past Bookings Tab -->
+      <mat-tab label="Past ({{pastBookings.length}})">
+        <div class="tab-content">
+          <div *ngIf="pastBookings.length === 0" class="no-bookings">
+            <mat-icon>history</mat-icon>
+            <h3>No past bookings</h3>
+            <p>Your booking history will appear here.</p>
+          </div>
+          
+          <div *ngIf="pastBookings.length > 0" class="bookings-grid">
+            <mat-card *ngFor="let booking of pastBookings" class="booking-card past-booking">
+              <div class="booking-image">
+                <img [src]="booking.propertyImage || getDefaultImage()" 
+                     [alt]="booking.propertyName"
+                     (error)="handleImageError($event)">
+                <div class="booking-status" [class]="getBookingStatusClass(booking.isBookingStatus)">
+                  <mat-icon>{{getBookingStatusIcon(booking.isBookingStatus)}}</mat-icon>
+                  {{booking.isBookingStatus}}
+                </div>
+              </div>
+              
+              <div class="booking-content">
+                <div class="booking-header">
+                  <h3 class="property-name">{{booking.propertyName}}</h3>
+                  <div class="payment-status" [class]="getPaymentStatusClass(booking.isPaymentStatus)">
+                    <mat-icon>{{booking.isPaymentStatus ? 'check_circle' : 'schedule'}}</mat-icon>
+                    {{getPaymentStatusText(booking.isPaymentStatus)}}
+                  </div>
+                </div>
+                
+                <p class="booking-location">
+                  <mat-icon>location_on</mat-icon>
+                  {{booking.city}}
+                </p>
+                
+                <div class="booking-dates">
+                  <div class="date-item">
+                    <mat-icon>login</mat-icon>
+                    <div>
+                      <span class="date-label">Check-in</span>
+                      <span class="date-value">{{formatDate(booking.checkinDate)}}</span>
+                    </div>
+                  </div>
+                  <div class="date-item">
+                    <mat-icon>logout</mat-icon>
+                    <div>
+                      <span class="date-label">Check-out</span>
+                      <span class="date-value">{{formatDate(booking.checkoutDate)}}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="booking-actions">
+                  <button mat-button (click)="viewBookingDetails(booking)" class="view-details">
+                    <mat-icon>visibility</mat-icon>
+                    View Details
+                  </button>
+                  
+                  <button mat-icon-button [matMenuTriggerFor]="pastBookingMenu" class="more-actions">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  
+                  <mat-menu #pastBookingMenu="matMenu">
+                    <button mat-menu-item (click)="addReview(booking)" 
+                            [disabled]="booking.isBookingStatus !== 'COMPLETED'">
+                      <mat-icon>rate_review</mat-icon>
+                      Add Review
+                    </button>
+                    <button mat-menu-item (click)="viewPropertyDetails(booking.propertyId)">
+                      <mat-icon>home</mat-icon>
+                      View Property
+                    </button>
+                  </mat-menu>
+                </div>
+              </div>
+            </mat-card>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <!-- Booking Details Dialog -->
+  <div *ngIf="showBookingDetails && selectedBooking" class="booking-details-overlay" (click)="closeBookingDetails()">
+    <div class="booking-details-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Booking Details</h2>
+        <button mat-icon-button (click)="closeBookingDetails()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="dialog-content">
+        <div class="booking-info">
+          <h3>{{selectedBooking.propertyName}}</h3>
+          <p class="location">
+            <mat-icon>location_on</mat-icon>
+            {{selectedBooking.city}}
+          </p>
+          
+          <div class="booking-details-grid">
+            <div class="detail-item">
+              <mat-icon>confirmation_number</mat-icon>
+              <div>
+                <span class="label">Booking ID</span>
+                <span class="value">#{{selectedBooking.bookingId}}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <mat-icon>schedule</mat-icon>
+              <div>
+                <span class="label">Status</span>
+                <span class="value" [class]="getBookingStatusClass(selectedBooking.isBookingStatus)">
+                  {{selectedBooking.isBookingStatus}}
+                </span>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <mat-icon>payment</mat-icon>
+              <div>
+                <span class="label">Payment</span>
+                <span class="value" [class]="getPaymentStatusClass(selectedBooking.isPaymentStatus)">
+                  {{getPaymentStatusText(selectedBooking.isPaymentStatus)}}
+                </span>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <mat-icon>login</mat-icon>
+              <div>
+                <span class="label">Check-in</span>
+                <span class="value">{{formatDateTime(selectedBooking.checkinDate)}}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <mat-icon>logout</mat-icon>
+              <div>
+                <span class="label">Check-out</span>
+                <span class="value">{{formatDateTime(selectedBooking.checkoutDate)}}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <mat-icon>nights_stay</mat-icon>
+              <div>
+                <span class="label">Duration</span>
+                <span class="value">{{calculateNights(selectedBooking.checkinDate, selectedBooking.checkoutDate)}} nights</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="extras-section" *ngIf="selectedBooking.hasExtraCot || selectedBooking.hasDeepClean">
+            <h4>Additional Services</h4>
+            <div class="extras-list">
+              <div class="extra-item" *ngIf="selectedBooking.hasExtraCot">
+                <mat-icon>bed</mat-icon>
+                <span>Extra Cot</span>
+              </div>
+              <div class="extra-item" *ngIf="selectedBooking.hasDeepClean">
+                <mat-icon>cleaning_services</mat-icon>
+                <span>Deep Clean</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button mat-button (click)="closeBookingDetails()">Close</button>
+        <button mat-raised-button color="primary" (click)="viewPropertyDetails(selectedBooking.propertyId)">
+          View Property
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

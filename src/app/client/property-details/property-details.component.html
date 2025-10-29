@@ -1,0 +1,342 @@
+<div class="property-details-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>Property Details</h1>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading property details...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-message">
+    <mat-icon>error</mat-icon>
+    <p>{{errorMessage}}</p>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="success-message">
+    <mat-icon>check_circle</mat-icon>
+    <p>{{successMessage}}</p>
+  </div>
+
+  <!-- Property Details Content -->
+  <div *ngIf="!isLoading && property" class="property-content">
+    <div class="property-layout">
+      <!-- Main Property Info -->
+      <div class="property-main">
+        <mat-card class="property-card">
+          <div class="property-image">
+            <img [src]="property.imageURL || getDefaultImage()" 
+                 [alt]="property.propertyName"
+                 (error)="handleImageError($event)">
+            <div class="property-status" [class.available]="property.propertyStatus === 'AVAILABLE'">
+              {{property.propertyStatus}}
+            </div>
+          </div>
+          
+          <div class="property-info">
+            <div class="property-header">
+              <h2 class="property-name">{{property.propertyName}}</h2>
+              <div class="property-rating" *ngIf="property.propertyRate > 0">
+                <span class="rating-stars">{{getRatingStars(property.propertyRate)}}</span>
+                <span class="rating-count">({{property.propertyRatingCount}} reviews)</span>
+              </div>
+            </div>
+            
+            <p class="property-location">
+              <mat-icon>location_on</mat-icon>
+              {{property.buildingNo}} {{property.street}}, {{property.city}}, {{property.state}}, {{property.country}} {{property.postalCode}}
+            </p>
+            
+            <div class="property-description">
+              <h3>Description</h3>
+              <p>{{property.propertyDescription}}</p>
+            </div>
+            
+            <div class="property-details">
+              <h3>Property Details</h3>
+              <div class="details-grid">
+                <div class="detail-item">
+                  <mat-icon>bed</mat-icon>
+                  <div>
+                    <span class="detail-label">Rooms</span>
+                    <span class="detail-value">{{property.noOfRooms}}</span>
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <mat-icon>bathtub</mat-icon>
+                  <div>
+                    <span class="detail-label">Bathrooms</span>
+                    <span class="detail-value">{{property.noOfBathrooms}}</span>
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <mat-icon>group</mat-icon>
+                  <div>
+                    <span class="detail-label">Max Guests</span>
+                    <span class="detail-value">{{property.maxNoOfGuests}}</span>
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <mat-icon>attach_money</mat-icon>
+                  <div>
+                    <span class="detail-label">Price per night</span>
+                    <span class="detail-value">{{formatPrice(property.pricePerDay)}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="property-amenities">
+              <h3>Amenities</h3>
+              <div class="amenities-grid">
+                <div class="amenity-item" *ngIf="property.hasWifi">
+                  <mat-icon>wifi</mat-icon>
+                  <span>WiFi</span>
+                </div>
+                <div class="amenity-item" *ngIf="property.hasParking">
+                  <mat-icon>local_parking</mat-icon>
+                  <span>Parking</span>
+                </div>
+                <div class="amenity-item" *ngIf="property.hasPool">
+                  <mat-icon>pool</mat-icon>
+                  <span>Pool</span>
+                </div>
+                <div class="amenity-item" *ngIf="property.hasAc">
+                  <mat-icon>ac_unit</mat-icon>
+                  <span>Air Conditioning</span>
+                </div>
+                <div class="amenity-item" *ngIf="property.hasHeater">
+                  <mat-icon>whatshot</mat-icon>
+                  <span>Heater</span>
+                </div>
+                <div class="amenity-item" *ngIf="property.hasPetFriendly">
+                  <mat-icon>pets</mat-icon>
+                  <span>Pet Friendly</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="property-host">
+              <h3>Host Information</h3>
+              <div class="host-info">
+                <div class="host-detail">
+                  <mat-icon>person</mat-icon>
+                  <div>
+                    <span class="host-label">Host Name</span>
+                    <span class="host-value">{{property.hostName}}</span>
+                  </div>
+                </div>
+                <div class="host-detail">
+                  <mat-icon>phone</mat-icon>
+                  <div>
+                    <span class="host-label">Contact</span>
+                    <span class="host-value">{{property.hostPhone}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+      
+      <!-- Booking Sidebar -->
+      <div class="booking-sidebar">
+        <mat-card class="booking-card">
+          <div class="booking-header">
+            <h3>Book This Property</h3>
+            <div class="price-display">
+              <span class="price">{{formatPrice(property.pricePerDay)}}</span>
+              <span class="price-unit">per night</span>
+            </div>
+          </div>
+          
+          <div class="booking-actions">
+            <button mat-raised-button 
+                    color="primary" 
+                    (click)="openBookingForm()"
+                    [disabled]="property.propertyStatus !== 'AVAILABLE'"
+                    class="book-button">
+              <mat-icon>event_available</mat-icon>
+              {{property.propertyStatus === 'AVAILABLE' ? 'Book Now' : 'Not Available'}}
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Form Dialog -->
+  <div *ngIf="showBookingForm" class="booking-form-overlay" (click)="closeBookingForm()">
+    <div class="booking-form-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Book {{property?.propertyName}}</h2>
+        <button mat-icon-button (click)="closeBookingForm()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="bookingForm" (ngSubmit)="submitBooking()" class="booking-form">
+        <mat-stepper #stepper>
+          <!-- Step 1: Select Dates -->
+          <mat-step label="Select Dates">
+            <div class="step-content">
+              <div class="date-selection">
+                <mat-form-field appearance="outline" class="date-field">
+                  <mat-label>Check-in Date</mat-label>
+                  <input matInput 
+                         [matDatepicker]="checkinPicker"
+                         formControlName="checkinDate"
+                         [min]="minDate"
+                         [max]="maxDate">
+                  <mat-datepicker-toggle matSuffix [for]="checkinPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #checkinPicker></mat-datepicker>
+                  <mat-error *ngIf="hasError('checkinDate')">
+                    {{getErrorMessage('checkinDate')}}
+                  </mat-error>
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline" class="date-field">
+                  <mat-label>Check-out Date</mat-label>
+                  <input matInput 
+                         [matDatepicker]="checkoutPicker"
+                         formControlName="checkoutDate"
+                         [min]="minDate"
+                         [max]="maxDate">
+                  <mat-datepicker-toggle matSuffix [for]="checkoutPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #checkoutPicker></mat-datepicker>
+                  <mat-error *ngIf="hasError('checkoutDate')">
+                    {{getErrorMessage('checkoutDate')}}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              
+              <div class="date-summary" *ngIf="bookingForm.get('checkinDate')?.value && bookingForm.get('checkoutDate')?.value">
+                <h4>Booking Summary</h4>
+                <div class="summary-details">
+                  <div class="summary-item">
+                    <span class="summary-label">Check-in:</span>
+                    <span class="summary-value">{{formatDate(bookingForm.get('checkinDate')?.value)}}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Check-out:</span>
+                    <span class="summary-value">{{formatDate(bookingForm.get('checkoutDate')?.value)}}</span>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Duration:</span>
+                    <span class="summary-value">{{calculateNights(bookingForm.get('checkinDate')?.value, bookingForm.get('checkoutDate')?.value)}} nights</span>
+                  </div>
+                  <div class="summary-item total" *ngIf="property">
+                    <span class="summary-label">Total Price:</span>
+                    <span class="summary-value">{{formatPrice(calculateTotalPrice(property.pricePerDay, calculateNights(bookingForm.get('checkinDate')?.value, bookingForm.get('checkoutDate')?.value)))}}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="step-actions">
+                <button mat-button type="button" (click)="closeBookingForm()">Cancel</button>
+                <button mat-raised-button color="primary" (click)="nextStep()" [disabled]="!bookingForm.get('checkinDate')?.value || !bookingForm.get('checkoutDate')?.value">
+                  Next
+                </button>
+              </div>
+            </div>
+          </mat-step>
+          
+          <!-- Step 2: Additional Services -->
+          <mat-step label="Additional Services">
+            <div class="step-content">
+              <h4>Optional Services</h4>
+              <div class="services-selection">
+                <mat-checkbox formControlName="hasExtraCot" class="service-checkbox">
+                  <div class="service-option">
+                    <mat-icon>bed</mat-icon>
+                    <div>
+                      <span class="service-name">Extra Cot</span>
+                      <span class="service-description">Additional sleeping arrangement</span>
+                    </div>
+                  </div>
+                </mat-checkbox>
+                
+                <mat-checkbox formControlName="hasDeepClean" class="service-checkbox">
+                  <div class="service-option">
+                    <mat-icon>cleaning_services</mat-icon>
+                    <div>
+                      <span class="service-name">Deep Clean</span>
+                      <span class="service-description">Thorough cleaning service</span>
+                    </div>
+                  </div>
+                </mat-checkbox>
+              </div>
+              
+              <div class="step-actions">
+                <button mat-button type="button" (click)="previousStep()">Previous</button>
+                <button mat-raised-button color="primary" (click)="nextStep()">
+                  Next
+                </button>
+              </div>
+            </div>
+          </mat-step>
+          
+          <!-- Step 3: Confirmation -->
+          <mat-step label="Confirmation">
+            <div class="step-content">
+              <h4>Booking Confirmation</h4>
+              <div class="confirmation-details">
+                <div class="confirmation-item">
+                  <span class="confirmation-label">Property:</span>
+                  <span class="confirmation-value">{{property?.propertyName}}</span>
+                </div>
+                <div class="confirmation-item">
+                  <span class="confirmation-label">Check-in:</span>
+                  <span class="confirmation-value">{{formatDate(bookingForm.get('checkinDate')?.value)}}</span>
+                </div>
+                <div class="confirmation-item">
+                  <span class="confirmation-label">Check-out:</span>
+                  <span class="confirmation-value">{{formatDate(bookingForm.get('checkoutDate')?.value)}}</span>
+                </div>
+                <div class="confirmation-item">
+                  <span class="confirmation-label">Duration:</span>
+                  <span class="confirmation-value">{{calculateNights(bookingForm.get('checkinDate')?.value, bookingForm.get('checkoutDate')?.value)}} nights</span>
+                </div>
+                <div class="confirmation-item" *ngIf="bookingForm.get('hasExtraCot')?.value">
+                  <span class="confirmation-label">Extra Services:</span>
+                  <span class="confirmation-value">Extra Cot</span>
+                </div>
+                <div class="confirmation-item" *ngIf="bookingForm.get('hasDeepClean')?.value">
+                  <span class="confirmation-label">Extra Services:</span>
+                  <span class="confirmation-value">Deep Clean</span>
+                </div>
+                <mat-divider></mat-divider>
+                <div class="confirmation-item total" *ngIf="property">
+                  <span class="confirmation-label">Total Price:</span>
+                  <span class="confirmation-value">{{formatPrice(calculateTotalPrice(property.pricePerDay, calculateNights(bookingForm.get('checkinDate')?.value, bookingForm.get('checkoutDate')?.value)))}}</span>
+                </div>
+              </div>
+              
+              <div class="step-actions">
+                <button mat-button type="button" (click)="previousStep()">Previous</button>
+                <button mat-raised-button 
+                        color="primary" 
+                        type="submit"
+                        [disabled]="bookingForm.invalid || isBooking">
+                  <mat-spinner *ngIf="isBooking" diameter="20"></mat-spinner>
+                  <mat-icon *ngIf="!isBooking">book_online</mat-icon>
+                  {{isBooking ? 'Booking...' : 'Confirm Booking'}}
+                </button>
+              </div>
+            </div>
+          </mat-step>
+        </mat-stepper>
+      </form>
+    </div>
+  </div>
+</div>
+

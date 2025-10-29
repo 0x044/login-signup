@@ -1,0 +1,316 @@
+<div class="my-complaints-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>My Complaints</h1>
+      <button mat-raised-button color="primary" (click)="openComplaintForm()" class="new-complaint-btn">
+        <mat-icon>add</mat-icon>
+        New Complaint
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading your complaints...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-message">
+    <mat-icon>error</mat-icon>
+    <p>{{errorMessage}}</p>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="success-message">
+    <mat-icon>check_circle</mat-icon>
+    <p>{{successMessage}}</p>
+  </div>
+
+  <!-- Complaints Content -->
+  <div *ngIf="!isLoading" class="complaints-content">
+    <!-- Tabs -->
+    <mat-tab-group (selectedTabChange)="onTabChange($event)" class="complaints-tabs">
+      <!-- Active Complaints Tab -->
+      <mat-tab label="Active ({{activeComplaints.length}})">
+        <div class="tab-content">
+          <div *ngIf="activeComplaints.length === 0" class="no-complaints">
+            <mat-icon>inbox</mat-icon>
+            <h3>No active complaints</h3>
+            <p>You don't have any active complaints at the moment.</p>
+            <button mat-raised-button color="primary" (click)="openComplaintForm()">
+              <mat-icon>add</mat-icon>
+              Submit New Complaint
+            </button>
+          </div>
+          
+          <div *ngIf="activeComplaints.length > 0" class="complaints-list">
+            <mat-expansion-panel *ngFor="let complaint of activeComplaints" class="complaint-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <div class="complaint-header">
+                    <div class="complaint-type">
+                      <mat-icon>{{getComplaintTypeIcon(complaint.complaintType)}}</mat-icon>
+                      {{getComplaintTypeLabel(complaint.complaintType)}}
+                    </div>
+                    <div class="complaint-status" [class]="getComplaintStatusClass(complaint.complaintStatus)">
+                      <mat-icon>{{getComplaintStatusIcon(complaint.complaintStatus)}}</mat-icon>
+                      {{complaint.complaintStatus}}
+                    </div>
+                  </div>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span class="complaint-date">{{formatDate(complaint.complaintDate)}}</span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              
+              <div class="complaint-content">
+                <div class="complaint-description">
+                  <h4>Description:</h4>
+                  <p>{{complaint.complaintDescription}}</p>
+                </div>
+                
+                <div class="complaint-details">
+                  <div class="detail-item">
+                    <mat-icon>confirmation_number</mat-icon>
+                    <div>
+                      <span class="label">Complaint ID</span>
+                      <span class="value">#{{complaint.complaintId}}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item" *ngIf="complaint.bookingId">
+                    <mat-icon>event</mat-icon>
+                    <div>
+                      <span class="label">Booking ID</span>
+                      <span class="value">#{{complaint.bookingId}}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <div>
+                      <span class="label">Submitted</span>
+                      <span class="value">{{formatDateTime(complaint.complaintDate)}}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="complaint-actions">
+                  <button mat-button (click)="viewComplaintDetails(complaint)" class="view-details">
+                    <mat-icon>visibility</mat-icon>
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </div>
+        </div>
+      </mat-tab>
+      
+      <!-- Resolved Complaints Tab -->
+      <mat-tab label="Resolved ({{resolvedComplaints.length}})">
+        <div class="tab-content">
+          <div *ngIf="resolvedComplaints.length === 0" class="no-complaints">
+            <mat-icon>check_circle</mat-icon>
+            <h3>No resolved complaints</h3>
+            <p>Your resolved complaints will appear here.</p>
+          </div>
+          
+          <div *ngIf="resolvedComplaints.length > 0" class="complaints-list">
+            <mat-expansion-panel *ngFor="let complaint of resolvedComplaints" class="complaint-panel resolved">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <div class="complaint-header">
+                    <div class="complaint-type">
+                      <mat-icon>{{getComplaintTypeIcon(complaint.complaintType)}}</mat-icon>
+                      {{getComplaintTypeLabel(complaint.complaintType)}}
+                    </div>
+                    <div class="complaint-status" [class]="getComplaintStatusClass(complaint.complaintStatus)">
+                      <mat-icon>{{getComplaintStatusIcon(complaint.complaintStatus)}}</mat-icon>
+                      {{complaint.complaintStatus}}
+                    </div>
+                  </div>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span class="complaint-date">{{formatDate(complaint.complaintDate)}}</span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              
+              <div class="complaint-content">
+                <div class="complaint-description">
+                  <h4>Description:</h4>
+                  <p>{{complaint.complaintDescription}}</p>
+                </div>
+                
+                <div class="complaint-details">
+                  <div class="detail-item">
+                    <mat-icon>confirmation_number</mat-icon>
+                    <div>
+                      <span class="label">Complaint ID</span>
+                      <span class="value">#{{complaint.complaintId}}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item" *ngIf="complaint.bookingId">
+                    <mat-icon>event</mat-icon>
+                    <div>
+                      <span class="label">Booking ID</span>
+                      <span class="value">#{{complaint.bookingId}}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    <div>
+                      <span class="label">Submitted</span>
+                      <span class="value">{{formatDateTime(complaint.complaintDate)}}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="complaint-actions">
+                  <button mat-button (click)="viewComplaintDetails(complaint)" class="view-details">
+                    <mat-icon>visibility</mat-icon>
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <!-- New Complaint Form Dialog -->
+  <div *ngIf="showComplaintForm" class="complaint-form-overlay" (click)="closeComplaintForm()">
+    <div class="complaint-form-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Submit New Complaint</h2>
+        <button mat-icon-button (click)="closeComplaintForm()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="complaintForm" (ngSubmit)="submitComplaint()" class="complaint-form">
+        <div class="form-content">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Complaint Type</mat-label>
+            <mat-select formControlName="complaintType">
+              <mat-option *ngFor="let type of complaintTypes" [value]="type.value">
+                <mat-icon>{{type.icon}}</mat-icon>
+                {{type.label}}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="hasError('complaintType')">
+              {{getErrorMessage('complaintType')}}
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Booking ID (Optional)</mat-label>
+            <input matInput 
+                   type="number" 
+                   formControlName="bookingId"
+                   placeholder="Enter booking ID if related to a specific booking">
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Complaint Description</mat-label>
+            <textarea matInput 
+                      formControlName="complaintDescription"
+                      placeholder="Please describe your complaint in detail..."
+                      rows="4"
+                      maxlength="500"></textarea>
+            <mat-hint align="end">{{complaintForm.get('complaintDescription')?.value?.length || 0}}/500</mat-hint>
+            <mat-error *ngIf="hasError('complaintDescription')">
+              {{getErrorMessage('complaintDescription')}}
+            </mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-actions">
+          <button mat-button type="button" (click)="closeComplaintForm()">
+            Cancel
+          </button>
+          <button mat-raised-button 
+                  color="primary" 
+                  type="submit"
+                  [disabled]="complaintForm.invalid || isSubmitting">
+            <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+            <mat-icon *ngIf="!isSubmitting">send</mat-icon>
+            {{isSubmitting ? 'Submitting...' : 'Submit Complaint'}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Complaint Details Dialog -->
+  <div *ngIf="showComplaintDetails && selectedComplaint" class="complaint-details-overlay" (click)="closeComplaintDetails()">
+    <div class="complaint-details-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Complaint Details</h2>
+        <button mat-icon-button (click)="closeComplaintDetails()" class="close-button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="dialog-content">
+        <div class="complaint-info">
+          <div class="complaint-header">
+            <div class="complaint-type">
+              <mat-icon>{{getComplaintTypeIcon(selectedComplaint.complaintType)}}</mat-icon>
+              <h3>{{getComplaintTypeLabel(selectedComplaint.complaintType)}}</h3>
+            </div>
+            <div class="complaint-status" [class]="getComplaintStatusClass(selectedComplaint.complaintStatus)">
+              <mat-icon>{{getComplaintStatusIcon(selectedComplaint.complaintStatus)}}</mat-icon>
+              {{selectedComplaint.complaintStatus}}
+            </div>
+          </div>
+          
+          <div class="complaint-description">
+            <h4>Description:</h4>
+            <p>{{selectedComplaint.complaintDescription}}</p>
+          </div>
+          
+          <div class="complaint-details-grid">
+            <div class="detail-item">
+              <mat-icon>confirmation_number</mat-icon>
+              <div>
+                <span class="label">Complaint ID</span>
+                <span class="value">#{{selectedComplaint.complaintId}}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item" *ngIf="selectedComplaint.bookingId">
+              <mat-icon>event</mat-icon>
+              <div>
+                <span class="label">Booking ID</span>
+                <span class="value">#{{selectedComplaint.bookingId}}</span>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <mat-icon>schedule</mat-icon>
+              <div>
+                <span class="label">Submitted</span>
+                <span class="value">{{formatDateTime(selectedComplaint.complaintDate)}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button mat-button (click)="closeComplaintDetails()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
