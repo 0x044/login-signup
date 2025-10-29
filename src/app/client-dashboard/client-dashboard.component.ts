@@ -150,7 +150,7 @@ export class ClientDashboardComponent implements OnInit {
     if (!userIdStr) {
       console.error("No userId found in sessionStorage");
       this.showError("Please login first");
-      this.router.navigate(["/login"]);
+      this.router.navigate(["/home"]);
       return;
     }
 
@@ -296,7 +296,7 @@ export class ClientDashboardComponent implements OnInit {
 
         // Navigate to login
         setTimeout(() => {
-          this.router.navigate(["/login"]);
+          this.router.navigate(["/home"]);
         }, 1000);
       },
       error: (error: HttpErrorResponse) => {
@@ -306,7 +306,7 @@ export class ClientDashboardComponent implements OnInit {
         sessionStorage.clear();
         console.log("Session cleared despite error");
 
-        this.router.navigate(["/login"]);
+        this.router.navigate(["/home"]);
       },
       complete: () => {
         this.loading.logout = false;
@@ -429,7 +429,7 @@ export class ClientDashboardComponent implements OnInit {
 
   navigateToProfile(): void {
     console.log("Navigating to profile...");
-    this.router.navigate(["/user/profile"]);
+    this.router.navigate(["/client/profile"]);
   }
 
   viewBookingDetails(bookingId: number): void {

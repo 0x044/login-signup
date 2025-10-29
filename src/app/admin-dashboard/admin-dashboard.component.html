@@ -1,0 +1,470 @@
+<div class="admin-dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1>Admin Dashboard</h1>
+        <p>Complete system oversight and management</p>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        <span class="logout-icon">→</span>
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Alert Messages -->
+  <div class="alert-container">
+    <div *ngIf="successMessage" class="alert alert-success">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-users">
+      <div class="stat-content">
+        <p>Total Users</p>
+        <h3>{{ stats.totalUsers }}</h3>
+        <small>{{ stats.activeUsers }} active, {{ stats.blockedUsers }} blocked</small>
+      </div>
+      <div class="stat-icon">U</div>
+    </div>
+
+    <div class="stat-card stat-properties">
+      <div class="stat-content">
+        <p>Total Properties</p>
+        <h3>{{ stats.totalProperties }}</h3>
+        <small>{{ stats.availableProperties }} available</small>
+      </div>
+      <div class="stat-icon">P</div>
+    </div>
+
+    <div class="stat-card stat-bookings">
+      <div class="stat-content">
+        <p>Total Bookings</p>
+        <h3>{{ stats.totalBookings }}</h3>
+        <small>{{ stats.confirmedBookings }} confirmed</small>
+      </div>
+      <div class="stat-icon">B</div>
+    </div>
+
+    <div class="stat-card stat-complaints">
+      <div class="stat-content">
+        <p>Total Complaints</p>
+        <h3>{{ stats.totalComplaints }}</h3>
+        <small>{{ stats.pendingComplaints }} pending</small>
+      </div>
+      <div class="stat-icon">C</div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="dashboard-tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'users'"
+      (click)="switchTab('users')">
+      User Management
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'properties'"
+      (click)="switchTab('properties')">
+      Property Management
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'bookings'"
+      (click)="switchTab('bookings')">
+      Booking Management
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'complaints'"
+      (click)="switchTab('complaints')">
+      Complaint Management
+    </button>
+  </div>
+
+  <!-- ==================== TAB 1: USER MANAGEMENT ==================== -->
+  <div *ngIf="activeTab === 'users'" class="tab-content">
+    <div class="content-header">
+      <h2>User Management</h2>
+      <div class="header-actions">
+        <!-- Status Filter -->
+        <select [(ngModel)]="selectedUserStatus" (change)="filterUsersByStatus()" class="filter-select">
+          <option value="ALL">All Users</option>
+          <option value="ACTIVE">Active Only</option>
+          <option value="BLOCKED">Blocked Only</option>
+          <option value="DELETED">Deleted Only</option>
+        </select>
+        
+        <!-- Search -->
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          placeholder="Search users..."
+          class="search-input">
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers">
+            <td>{{ user.userId }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.userMail }}</td>
+            <td>{{ user.userPhone }}</td>
+            <td>
+              <span class="badge" [ngClass]="getRoleBadgeClass(user.userRole)">
+                {{ user.userRole }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getStatusBadgeClass(user.userStatus)">
+                {{ user.userStatus }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button 
+                class="btn btn-sm btn-warning" 
+                (click)="openBlockUserModal(user)"
+                [disabled]="user.userRole === 'ADMIN'">
+                {{ user.userStatus === 'ACTIVE' ? 'Block' : 'Activate' }}
+              </button>
+              <button 
+                *ngIf="user.userStatus === 'BLOCKED'"
+                class="btn btn-sm btn-success" 
+                (click)="unblockUser(user.userId)">
+                Unblock
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="filteredUsers.length === 0" class="empty-state">
+        <p>No users found</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 2: PROPERTY MANAGEMENT ==================== -->
+  <div *ngIf="activeTab === 'properties'" class="tab-content">
+    <div class="content-header">
+      <h2>Property Management</h2>
+      <div class="header-actions">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          placeholder="Search properties..."
+          class="search-input">
+      </div>
+    </div>
+
+    <div class="properties-grid">
+      <div class="property-card" *ngFor="let property of filteredProperties">
+        <div class="property-image">
+          <img [src]="property.imageURL || 'assets/placeholder-property.jpg'" 
+               [alt]="property.propertyName">
+          <span class="status-badge" [ngClass]="getStatusBadgeClass(property.propertyStatus)">
+            {{ property.propertyStatus }}
+          </span>
+        </div>
+        
+        <div class="property-details">
+          <h3>{{ property.propertyName }}</h3>
+          <p class="property-location">{{ property.city }}, {{ property.state }}, {{ property.country }}</p>
+          
+          <div class="property-stats">
+            <span>{{ property.noOfRooms }} Rooms</span>
+            <span>{{ property.noOfBathrooms }} Baths</span>
+            <span>{{ property.maxNoOfGuests }} Guests</span>
+          </div>
+          
+          <div class="property-amenities">
+            <span *ngIf="property.hasWifi" title="WiFi">WiFi</span>
+            <span *ngIf="property.hasParking" title="Parking">Parking</span>
+            <span *ngIf="property.hasPool" title="Pool">Pool</span>
+            <span *ngIf="property.hasAc" title="AC">AC</span>
+            <span *ngIf="property.hasHeater" title="Heater">Heat</span>
+            <span *ngIf="property.hasPetFriendly" title="Pet Friendly">Pets</span>
+          </div>
+          
+          <div class="property-rating">
+            <span class="stars">{{ getRatingStars(property.propertyRate) }}</span>
+            <span class="rating-text">{{ property.propertyRate.toFixed(1) }} ({{ property.propertyRatingCount }} reviews)</span>
+          </div>
+          
+          <div class="property-price">
+            ₹{{ property.pricePerDay }} <small>/ night</small>
+          </div>
+          
+          <div class="property-actions">
+            <button class="btn btn-sm btn-danger" (click)="deleteProperty(property.propertyId)">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredProperties.length === 0" class="empty-state">
+      <p>No properties found</p>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 3: BOOKING MANAGEMENT ==================== -->
+  <div *ngIf="activeTab === 'bookings'" class="tab-content">
+    <div class="content-header">
+      <h2>Booking Management</h2>
+      <div class="header-actions">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          placeholder="Search bookings..."
+          class="search-input">
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Booking ID</th>
+            <th>Property</th>
+            <th>Guest</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th>Extras</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let booking of filteredBookings">
+            <td>#{{ booking.bookingId }}</td>
+            <td>
+              <div class="booking-property">
+                <img [src]="booking.propertyImage || 'assets/placeholder-property.jpg'" 
+                     [alt]="booking.propertyName"
+                     class="mini-image">
+                <div>
+                  <strong>{{ booking.propertyName }}</strong>
+                  <small>{{ booking.city }}</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ booking.username }}</td>
+            <td>{{ booking.checkinDate | date:'mediumDate' }}</td>
+            <td>{{ booking.checkoutDate | date:'mediumDate' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getStatusBadgeClass(booking.isBookingStatus)">
+                {{ booking.isBookingStatus }}
+              </span>
+            </td>
+            <td>
+              <span [class.paid]="booking.isPaymentStatus" [class.unpaid]="!booking.isPaymentStatus">
+                {{ booking.isPaymentStatus ? 'Paid' : 'Unpaid' }}
+              </span>
+            </td>
+            <td>
+              <div class="extras">
+                <span *ngIf="booking.hasExtraCot" title="Extra Cot">Cot</span>
+                <span *ngIf="booking.hasDeepClean" title="Deep Clean">Clean</span>
+                <span *ngIf="!booking.hasExtraCot && !booking.hasDeepClean">-</span>
+              </div>
+            </td>
+            <td class="actions-cell">
+              <button 
+                class="btn btn-sm btn-primary" 
+                (click)="openRatingModal(booking)"
+                [disabled]="booking.isBookingStatus === 'COMPLETED' || booking.isBookingStatus === 'CANCELLED'">
+                Close & Rate
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="filteredBookings.length === 0" class="empty-state">
+        <p>No bookings found</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 4: COMPLAINT MANAGEMENT ==================== -->
+  <div *ngIf="activeTab === 'complaints'" class="tab-content">
+    <div class="content-header">
+      <h2>Complaint Management</h2>
+      <div class="header-actions">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          placeholder="Search complaints..."
+          class="search-input">
+      </div>
+    </div>
+
+    <div class="complaints-list">
+      <div class="complaint-card" *ngFor="let complaint of filteredComplaints">
+        <div class="complaint-header">
+          <div>
+            <h3>Complaint #{{ complaint.complaintId }}</h3>
+            <p class="complaint-user">{{ complaint.username }}</p>
+          </div>
+          <div class="complaint-badges">
+            <span class="badge" [ngClass]="getStatusBadgeClass(complaint.complaintStatus)">
+              {{ complaint.complaintStatus }}
+            </span>
+            <span class="badge badge-secondary">{{ complaint.complaintType }}</span>
+          </div>
+        </div>
+
+        <div class="complaint-body">
+          <p>{{ complaint.complaintDescription }}</p>
+        </div>
+
+        <div class="complaint-footer">
+          <div class="complaint-meta">
+            <span *ngIf="complaint.bookingId">Booking #{{ complaint.bookingId }}</span>
+            <span>{{ formatDate(complaint.complaintDate) }}</span>
+          </div>
+          <div class="complaint-actions">
+            <button 
+              class="btn btn-sm btn-warning" 
+              (click)="openComplaintStatusModal(complaint)"
+              [disabled]="complaint.complaintStatus === 'CLOSED'">
+              Update Status
+            </button>
+            <button 
+              class="btn btn-sm btn-success" 
+              (click)="closeComplaint(complaint.complaintId)"
+              [disabled]="complaint.complaintStatus === 'CLOSED'">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredComplaints.length === 0" class="empty-state">
+      <p>No complaints found</p>
+    </div>
+  </div>
+
+  <!-- ==================== BLOCK/UNBLOCK USER MODAL ==================== -->
+  <div class="modal-overlay" *ngIf="showBlockUserModal" (click)="closeBlockUserModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="close-btn" (click)="closeBlockUserModal()">✕</button>
+      
+      <div class="modal-header">
+        <h2>Update User Status</h2>
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="blockUser()">
+          <div class="form-group">
+            <label>User Status</label>
+            <select [(ngModel)]="blockUserForm.userStatus" name="userStatus" class="form-control" required>
+              <option value="ACTIVE">Active</option>
+              <option value="BLOCKED">Blocked</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update Status</button>
+            <button type="button" class="btn btn-secondary" (click)="closeBlockUserModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== RATING MODAL ==================== -->
+  <div class="modal-overlay" *ngIf="showRatingModal" (click)="closeRatingModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="close-btn" (click)="closeRatingModal()">✕</button>
+      
+      <div class="modal-header">
+        <h2>Close Booking & Add Rating</h2>
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="closeBookingWithRating()">
+          <div class="form-group">
+            <label>Property Rating (1.0 - 5.0)</label>
+            <input 
+              type="number" 
+              [(ngModel)]="ratingForm.rating" 
+              name="rating"
+              class="form-control"
+              min="1"
+              max="5"
+              step="0.1"
+              required>
+            <small>This rating will be added to the property's overall rating</small>
+          </div>
+
+          <div class="rating-preview">
+            <span class="stars">{{ getRatingStars(ratingForm.rating) }}</span>
+            <span>{{ ratingForm.rating.toFixed(1) }} / 5.0</span>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Close Booking</button>
+            <button type="button" class="btn btn-secondary" (click)="closeRatingModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== COMPLAINT STATUS MODAL ==================== -->
+  <div class="modal-overlay" *ngIf="showComplaintStatusModal" (click)="closeComplaintStatusModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="close-btn" (click)="closeComplaintStatusModal()">✕</button>
+      
+      <div class="modal-header">
+        <h2>Update Complaint Status</h2>
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="updateComplaintStatus()">
+          <div class="form-group">
+            <label>Complaint Status</label>
+            <select [(ngModel)]="complaintStatusForm.status" name="status" class="form-control" required>
+              <option value="PENDING">Pending</option>
+              <option value="ACTIVE">Active</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update Status</button>
+            <button type="button" class="btn btn-secondary" (click)="closeComplaintStatusModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

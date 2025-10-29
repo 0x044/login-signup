@@ -1,0 +1,458 @@
+<div class="profile-container">
+  <!-- Background -->
+  <div class="background-gradient"></div>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner-large"></div>
+    <p class="loading-text">Loading profile...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && userProfile" class="profile-content">
+    
+    <!-- Header -->
+    <div class="profile-header">
+      <button class="back-button" (click)="goBack()">
+        <span>←</span>
+      </button>
+      <h1 class="page-title">User Profile</h1>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div *ngIf="successMessage" class="alert alert-success">
+      <span class="alert-icon">✓</span>
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-error">
+      <span class="alert-icon">⚠</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      
+      <!-- Avatar Section -->
+      <div class="profile-avatar-section">
+        <div class="avatar-circle">
+          <span class="avatar-initials">{{ getInitials(userProfile.username) }}</span>
+        </div>
+        <h2 class="profile-name">{{ userProfile.username }}</h2>
+        <div class="badge-container">
+          <span class="role-badge badge-{{ userProfile.userRole.toLowerCase() }}">
+            {{ userProfile.userRole }}
+          </span>
+          <span class="status-badge status-{{ userProfile.userStatus.toLowerCase() }}">
+            {{ userProfile.userStatus }}
+          </span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Profile Details -->
+      <div class="profile-details-section">
+        <h3 class="section-title">Personal Information</h3>
+
+        <!-- User ID (Read-only) -->
+        <div class="detail-item">
+          <div class="detail-icon">🆔</div>
+          <div class="detail-content">
+            <span class="detail-label">User ID</span>
+            <span class="detail-value">#{{ userProfile.userId }}</span>
+          </div>
+        </div>
+
+        <!-- Username (Read-only) -->
+        <div class="detail-item">
+          <div class="detail-icon">👤</div>
+          <div class="detail-content">
+            <span class="detail-label">Username</span>
+            <span class="detail-value">{{ userProfile.username }}</span>
+          </div>
+        </div>
+
+        <!-- Email (Editable) -->
+        <div class="detail-item">
+          <div class="detail-icon">📧</div>
+          <div class="detail-content">
+            <span class="detail-label">Email Address</span>
+            
+            <!-- View Mode -->
+            <span *ngIf="!editMode.email" class="detail-value">{{ userProfile.userMail }}</span>
+            
+            <!-- Edit Mode -->
+            <input 
+              *ngIf="editMode.email" 
+              type="email" 
+              [(ngModel)]="tempEmail"
+              class="edit-input"
+              placeholder="Enter email"
+            />
+          </div>
+          
+          <!-- Edit/Save/Cancel Buttons -->
+          <div class="action-icons">
+            <button 
+              *ngIf="!editMode.email" 
+              (click)="enableEdit('email')"
+              class="icon-button"
+              title="Edit email"
+            >
+              ✏️
+            </button>
+            <button 
+              *ngIf="editMode.email" 
+              (click)="updateUserField('email')"
+              [disabled]="isSaving"
+              class="icon-button save-button"
+              title="Save"
+            >
+              {{ isSaving ? '⏳' : '💾' }}
+            </button>
+            <button 
+              *ngIf="editMode.email" 
+              (click)="cancelEdit('email')"
+              class="icon-button cancel-button"
+              title="Cancel"
+            >
+              ✖️
+            </button>
+          </div>
+        </div>
+
+        <!-- Phone (Editable) -->
+        <div class="detail-item">
+          <div class="detail-icon">📱</div>
+          <div class="detail-content">
+            <span class="detail-label">Phone Number</span>
+            
+            <!-- View Mode -->
+            <span *ngIf="!editMode.phone" class="detail-value">{{ formatPhone(userProfile.userPhone) }}</span>
+            
+            <!-- Edit Mode -->
+            <input 
+              *ngIf="editMode.phone" 
+              type="tel" 
+              [(ngModel)]="tempPhone"
+              class="edit-input"
+              placeholder="Enter phone number"
+              maxlength="10"
+            />
+          </div>
+          
+          <!-- Edit/Save/Cancel Buttons -->
+          <div class="action-icons">
+            <button 
+              *ngIf="!editMode.phone" 
+              (click)="enableEdit('phone')"
+              class="icon-button"
+              title="Edit phone"
+            >
+              ✏️
+            </button>
+            <button 
+              *ngIf="editMode.phone" 
+              (click)="updateUserField('phone')"
+              [disabled]="isSaving"
+              class="icon-button save-button"
+              title="Save"
+            >
+              {{ isSaving ? '⏳' : '💾' }}
+            </button>
+            <button 
+              *ngIf="editMode.phone" 
+              (click)="cancelEdit('phone')"
+              class="icon-button cancel-button"
+              title="Cancel"
+            >
+              ✖️
+            </button>
+          </div>
+        </div>
+
+        <!-- Address (Editable) -->
+        <div class="detail-item detail-item-full">
+          <div class="detail-icon">📍</div>
+          <div class="detail-content">
+            <span class="detail-label">Address</span>
+            
+            <!-- View Mode -->
+            <span *ngIf="!editMode.address" class="detail-value">{{ userProfile.userAddress }}</span>
+            
+            <!-- Edit Mode -->
+            <textarea 
+              *ngIf="editMode.address" 
+              [(ngModel)]="tempAddress"
+              class="edit-textarea"
+              placeholder="Enter address"
+              rows="3"
+            ></textarea>
+          </div>
+          
+          <!-- Edit/Save/Cancel Buttons -->
+          <div class="action-icons">
+            <button 
+              *ngIf="!editMode.address" 
+              (click)="enableEdit('address')"
+              class="icon-button"
+              title="Edit address"
+            >
+              ✏️
+            </button>
+            <button 
+              *ngIf="editMode.address" 
+              (click)="updateUserField('address')"
+              [disabled]="isSaving"
+              class="icon-button save-button"
+              title="Save"
+            >
+              {{ isSaving ? '⏳' : '💾' }}
+            </button>
+            <button 
+              *ngIf="editMode.address" 
+              (click)="cancelEdit('address')"
+              class="icon-button cancel-button"
+              title="Cancel"
+            >
+              ✖️
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn-action btn-password" (click)="openPasswordModal()">
+          <span class="btn-icon">🔒</span>
+          Change Password
+        </button>
+        
+        <button class="btn-action btn-complaints" (click)="loadComplaints()" [disabled]="isLoadingComplaints">
+          <span class="btn-icon">{{ isLoadingComplaints ? '⏳' : '👁️' }}</span>
+          View My Complaints
+        </button>
+        
+        <button class="btn-action btn-delete" (click)="openDeleteModal()">
+          <span class="btn-icon">🗑️</span>
+          Delete Account
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ========================================================================
+       PASSWORD CHANGE MODAL
+       ======================================================================== -->
+  <div *ngIf="showPasswordModal" class="modal-overlay" (click)="closePasswordModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Change Password</h2>
+        <button class="modal-close" (click)="closePasswordModal()">✕</button>
+      </div>
+
+      <form [formGroup]="passwordForm" (ngSubmit)="submitPasswordChange()">
+        
+        <!-- Old Password -->
+        <div class="form-group">
+          <label class="form-label">Old Password</label>
+          <div class="password-input-wrapper">
+            <input
+              [type]="showOldPassword ? 'text' : 'password'"
+              formControlName="oldPassword"
+              class="form-input"
+              placeholder="Enter current password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="toggleOldPasswordVisibility()"
+            >
+              {{ showOldPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- New Password -->
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <div class="password-input-wrapper">
+            <input
+              [type]="showNewPassword ? 'text' : 'password'"
+              formControlName="newPassword"
+              class="form-input"
+              placeholder="Enter new password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="toggleNewPasswordVisibility()"
+            >
+              {{ showNewPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          
+          <!-- Password Requirements -->
+          <div class="password-requirements" *ngIf="newPassword?.touched">
+            <div class="requirement" [class.met]="getPasswordRequirements().hasMinLength">
+              <span class="requirement-icon">{{ getPasswordRequirements().hasMinLength ? '✓' : '○' }}</span>
+              At least 8 characters
+            </div>
+            <div class="requirement" [class.met]="getPasswordRequirements().hasUpperCase">
+              <span class="requirement-icon">{{ getPasswordRequirements().hasUpperCase ? '✓' : '○' }}</span>
+              One uppercase letter
+            </div>
+            <div class="requirement" [class.met]="getPasswordRequirements().hasLowerCase">
+              <span class="requirement-icon">{{ getPasswordRequirements().hasLowerCase ? '✓' : '○' }}</span>
+              One lowercase letter
+            </div>
+            <div class="requirement" [class.met]="getPasswordRequirements().hasNumeric">
+              <span class="requirement-icon">{{ getPasswordRequirements().hasNumeric ? '✓' : '○' }}</span>
+              One number
+            </div>
+            <div class="requirement" [class.met]="getPasswordRequirements().hasSpecialChar">
+              <span class="requirement-icon">{{ getPasswordRequirements().hasSpecialChar ? '✓' : '○' }}</span>
+              One special character (&commat;#$%^&+=)
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <div class="password-input-wrapper">
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              class="form-input"
+              placeholder="Re-enter new password"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="toggleConfirmPasswordVisibility()"
+            >
+              {{ showConfirmPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          <div *ngIf="confirmPassword?.touched && passwordsMatch()" class="password-match">
+            ✅ Passwords match!
+          </div>
+          <div *ngIf="confirmPassword?.touched && !passwordsMatch() && confirmPassword?.value" class="password-mismatch">
+            ❌ Passwords do not match
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="alert alert-error">
+          <span class="alert-icon">⚠</span>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closePasswordModal()">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="btn-primary" 
+            [disabled]="passwordForm.invalid || isSaving"
+          >
+            {{ isSaving ? 'Updating...' : 'Update Password' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       DELETE CONFIRMATION MODAL
+       ======================================================================== -->
+  <div *ngIf="showDeleteModal" class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal-content modal-delete" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">⚠️ Delete Account?</h2>
+      </div>
+
+      <div class="modal-body">
+        <p class="warning-text">
+          Are you sure you want to delete your account?
+        </p>
+        <p class="warning-subtext">
+          This action cannot be undone. Your account will be deactivated and you will lose access to all your data.
+        </p>
+        <div class="user-info-box">
+          <strong>Username:</strong> {{ userProfile?.username }}
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeDeleteModal()" [disabled]="isDeleting">
+          No, Keep My Account
+        </button>
+        <button 
+          class="btn-danger" 
+          (click)="confirmDeleteAccount()"
+          [disabled]="isDeleting"
+        >
+          {{ isDeleting ? 'Deleting...' : 'Yes, Delete My Account' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       COMPLAINTS MODAL
+       ======================================================================== -->
+  <div *ngIf="showComplaintsModal" class="modal-overlay" (click)="closeComplaintsModal()">
+    <div class="modal-content modal-complaints" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">My Complaints ({{ complaints.length }})</h2>
+        <button class="modal-close" (click)="closeComplaintsModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="complaints.length === 0" class="no-complaints">
+          <span class="no-complaints-icon">📭</span>
+          <p>You have no complaints.</p>
+        </div>
+
+        <div *ngIf="complaints.length > 0" class="complaints-list">
+          <div *ngFor="let complaint of complaints" class="complaint-card">
+            <div class="complaint-header">
+              <span class="complaint-type">
+                <span class="type-icon">{{ getComplaintTypeIcon(complaint.complaintType) }}</span>
+                {{ complaint.complaintType }}
+              </span>
+              <span [class]="'complaint-status ' + getComplaintStatusClass(complaint.complaintStatus)">
+                {{ complaint.complaintStatus }}
+              </span>
+            </div>
+            <div class="complaint-body">
+              <div class="complaint-meta">
+                <span>📋 ID: #{{ complaint.complaintId }}</span>
+                <span>📅 {{ formatDate(complaint.complaintDate) }}</span>
+                <span *ngIf="complaint.bookingId">🎫 Booking: #{{ complaint.bookingId }}</span>
+              </div>
+              <p class="complaint-description">{{ complaint.complaintDescription }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" (click)="closeComplaintsModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

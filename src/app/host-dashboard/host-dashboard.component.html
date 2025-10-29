@@ -1,0 +1,605 @@
+<div class="host-dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>🏠 Host Dashboard</h1>
+    <p>Manage your properties, bookings, and complaints</p>
+  </div>
+
+  <!-- Alert Messages -->
+  <div class="alert-container">
+    <div *ngIf="successMessage" class="alert alert-success">
+      ✓ {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      ✗ {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="dashboard-tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'properties'"
+      (click)="switchTab('properties')">
+      🏡 My Properties ({{ properties.length }})
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'deleted'"
+      (click)="switchTab('deleted')">
+      🗑️ Deleted Properties ({{ deletedProperties.length }})
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'bookings'"
+      (click)="switchTab('bookings')">
+      📅 Bookings ({{ bookings.length }})
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'complaints'"
+      (click)="switchTab('complaints')">
+      📝 Submit Complaint
+    </button>
+  </div>
+
+  <!-- ==================== TAB 1: MY PROPERTIES ==================== -->
+  <div *ngIf="activeTab === 'properties'" class="tab-content">
+    <div class="content-header">
+      <h2>My Properties</h2>
+      <button class="btn btn-primary" (click)="openAddPropertyForm()">
+        ➕ Add New Property
+      </button>
+    </div>
+
+    <!-- Properties Grid -->
+    <div class="properties-grid" *ngIf="properties.length > 0">
+      <div class="property-card" *ngFor="let property of properties">
+        <div class="property-image">
+          <img [src]="property.imageURL || 'assets/placeholder-property.jpg'" 
+               [alt]="property.propertyName">
+          <span class="status-badge" [ngClass]="getStatusBadgeClass(property.propertyStatus)">
+            {{ property.propertyStatus }}
+          </span>
+        </div>
+        
+        <div class="property-details">
+          <h3>{{ property.propertyName }}</h3>
+          <p class="property-location">📍 {{ property.city }}, {{ property.state }}, {{ property.country }}</p>
+          
+          <div class="property-stats">
+            <span>🛏️ {{ property.noOfRooms }} Rooms</span>
+            <span>🚿 {{ property.noOfBathrooms }} Baths</span>
+            <span>👥 {{ property.maxNoOfGuests }} Guests</span>
+          </div>
+          
+          <div class="property-amenities">
+            <span *ngIf="property.hasWifi" title="WiFi">📶</span>
+            <span *ngIf="property.hasParking" title="Parking">🅿️</span>
+            <span *ngIf="property.hasPool" title="Pool">🏊</span>
+            <span *ngIf="property.hasAc" title="AC">❄️</span>
+            <span *ngIf="property.hasHeater" title="Heater">🔥</span>
+            <span *ngIf="property.hasPetFriendly" title="Pet Friendly">🐕</span>
+          </div>
+          
+          <div class="property-rating">
+            <span class="stars">{{ getRatingStars(property.propertyRate) }}</span>
+            <span class="rating-text">{{ property.propertyRate.toFixed(1) }} ({{ property.propertyRatingCount }} reviews)</span>
+          </div>
+          
+          <div class="property-price">
+            <strong>₹{{ property.pricePerDay }}</strong> / night
+          </div>
+          
+          <div class="property-actions">
+            <button class="btn btn-sm btn-info" (click)="viewPropertyDetails(property.propertyId)">
+              👁️ View
+            </button>
+            <button class="btn btn-sm btn-warning" (click)="openEditPropertyForm(property)">
+              ✏️ Edit
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deleteProperty(property.propertyId)">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="properties.length === 0" class="empty-state">
+      <p>📭 No properties found. Add your first property!</p>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 2: DELETED PROPERTIES ==================== -->
+  <div *ngIf="activeTab === 'deleted'" class="tab-content">
+    <div class="content-header">
+      <h2>Deleted Properties</h2>
+    </div>
+
+    <div class="properties-grid" *ngIf="deletedProperties.length > 0">
+      <div class="property-card deleted" *ngFor="let property of deletedProperties">
+        <div class="property-image">
+          <img [src]="property.imageURL || 'assets/placeholder-property.jpg'" 
+               [alt]="property.propertyName">
+          <span class="status-badge badge-danger">DELETED</span>
+        </div>
+        
+        <div class="property-details">
+          <h3>{{ property.propertyName }}</h3>
+          <p class="property-location">📍 {{ property.city }}, {{ property.state }}</p>
+          
+          <div class="property-stats">
+            <span>🛏️ {{ property.noOfRooms }} Rooms</span>
+            <span>🚿 {{ property.noOfBathrooms }} Baths</span>
+            <span>👥 {{ property.maxNoOfGuests }} Guests</span>
+          </div>
+          
+          <div class="property-price">
+            <strong>₹{{ property.pricePerDay }}</strong> / night
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="deletedProperties.length === 0" class="empty-state">
+      <p>📭 No deleted properties</p>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 3: BOOKINGS ==================== -->
+  <div *ngIf="activeTab === 'bookings'" class="tab-content">
+    <div class="content-header">
+      <h2>Bookings on My Properties</h2>
+    </div>
+
+    <div class="bookings-list" *ngIf="bookings.length > 0">
+      <div class="booking-card" *ngFor="let booking of bookings">
+        <div class="booking-image">
+          <img [src]="booking.propertyImage || 'assets/placeholder-property.jpg'" 
+               [alt]="booking.propertyName">
+        </div>
+        
+        <div class="booking-details">
+          <h3>{{ booking.propertyName }}</h3>
+          <p class="booking-location">📍 {{ booking.city }}</p>
+          
+          <div class="booking-info">
+            <div class="info-row">
+              <span class="label">Guest:</span>
+              <span class="value">{{ booking.username }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Check-in:</span>
+              <span class="value">{{ booking.checkinDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Check-out:</span>
+              <span class="value">{{ booking.checkoutDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Status:</span>
+              <span class="value">
+                <span class="badge" [ngClass]="getStatusBadgeClass(booking.isBookingStatus)">
+                  {{ booking.isBookingStatus }}
+                </span>
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="label">Payment:</span>
+              <span class="value">
+                <span [class.paid]="booking.isPaymentStatus" [class.unpaid]="!booking.isPaymentStatus">
+                  {{ booking.isPaymentStatus ? '✓ Paid' : '✗ Unpaid' }}
+                </span>
+              </span>
+            </div>
+          </div>
+          
+          <div class="booking-extras" *ngIf="booking.hasExtraCot || booking.hasDeepClean">
+            <strong>Extras:</strong>
+            <span *ngIf="booking.hasExtraCot">🛏️ Extra Cot</span>
+            <span *ngIf="booking.hasDeepClean">🧹 Deep Clean</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="bookings.length === 0" class="empty-state">
+      <p>📭 No bookings on your properties yet</p>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 4: SUBMIT COMPLAINT ==================== -->
+  <div *ngIf="activeTab === 'complaints'" class="tab-content">
+    <div class="content-header">
+      <h2>Submit a Complaint</h2>
+    </div>
+
+    <div class="complaint-form-container">
+      <button class="btn btn-primary" (click)="openComplaintForm()" *ngIf="!showComplaintForm">
+        ➕ New Complaint
+      </button>
+
+      <div class="form-card" *ngIf="showComplaintForm">
+        <h3>Submit Complaint</h3>
+        <form (ngSubmit)="submitComplaint()">
+          <div class="form-group">
+            <label>Booking ID (Optional)</label>
+            <input 
+              type="number" 
+              [(ngModel)]="complaintForm.bookingId" 
+              name="bookingId"
+              class="form-control"
+              placeholder="Enter booking ID if related to a specific booking">
+          </div>
+
+          <div class="form-group">
+            <label>Complaint Type *</label>
+            <select 
+              [(ngModel)]="complaintForm.complaintType" 
+              name="complaintType"
+              class="form-control" 
+              required>
+              <option value="PROPERTY">Property Related</option>
+              <option value="USER">User Related</option>
+              <option value="BOOKING">Booking Related</option>
+              <option value="PAYMENT">Payment Related</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Complaint Description *</label>
+            <textarea 
+              [(ngModel)]="complaintForm.complaintDescription" 
+              name="complaintDescription"
+              class="form-control" 
+              rows="5"
+              placeholder="Describe your complaint in detail (10-1000 characters)"
+              required
+              minlength="10"
+              maxlength="1000"></textarea>
+            <small>{{ complaintForm.complaintDescription.length }}/1000 characters</small>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Submit Complaint</button>
+            <button type="button" class="btn btn-secondary" (click)="cancelComplaintForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PROPERTY DETAILS MODAL ==================== -->
+  <div class="modal-overlay" *ngIf="selectedProperty" (click)="closePropertyDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="close-btn" (click)="closePropertyDetails()">✕</button>
+      
+      <div class="modal-header">
+        <h2>{{ selectedProperty.propertyName }}</h2>
+        <span class="badge" [ngClass]="getStatusBadgeClass(selectedProperty.propertyStatus)">
+          {{ selectedProperty.propertyStatus }}
+        </span>
+      </div>
+
+      <div class="modal-body">
+        <img [src]="selectedProperty.imageURL || 'assets/placeholder-property.jpg'" 
+             [alt]="selectedProperty.propertyName" 
+             class="modal-image">
+
+        <div class="details-section">
+          <h3>Description</h3>
+          <p>{{ selectedProperty.propertyDescription }}</p>
+        </div>
+
+        <div class="details-section">
+          <h3>Property Details</h3>
+          <div class="details-grid">
+            <div><strong>Rooms:</strong> {{ selectedProperty.noOfRooms }}</div>
+            <div><strong>Bathrooms:</strong> {{ selectedProperty.noOfBathrooms }}</div>
+            <div><strong>Max Guests:</strong> {{ selectedProperty.maxNoOfGuests }}</div>
+            <div><strong>Price:</strong> ₹{{ selectedProperty.pricePerDay }}/night</div>
+          </div>
+        </div>
+
+        <div class="details-section">
+          <h3>Address</h3>
+          <p>
+            {{ selectedProperty.buildingNo }}, {{ selectedProperty.street }}<br>
+            {{ selectedProperty.city }}, {{ selectedProperty.state }} - {{ selectedProperty.postalCode }}<br>
+            {{ selectedProperty.country }}
+          </p>
+        </div>
+
+        <div class="details-section">
+          <h3>Amenities</h3>
+          <div class="amenities-list">
+            <span *ngIf="selectedProperty.hasWifi">✅ WiFi</span>
+            <span *ngIf="!selectedProperty.hasWifi">❌ WiFi</span>
+            <span *ngIf="selectedProperty.hasParking">✅ Parking</span>
+            <span *ngIf="!selectedProperty.hasParking">❌ Parking</span>
+            <span *ngIf="selectedProperty.hasPool">✅ Pool</span>
+            <span *ngIf="!selectedProperty.hasPool">❌ Pool</span>
+            <span *ngIf="selectedProperty.hasAc">✅ AC</span>
+            <span *ngIf="!selectedProperty.hasAc">❌ AC</span>
+            <span *ngIf="selectedProperty.hasHeater">✅ Heater</span>
+            <span *ngIf="!selectedProperty.hasHeater">❌ Heater</span>
+            <span *ngIf="selectedProperty.hasPetFriendly">✅ Pet Friendly</span>
+            <span *ngIf="!selectedProperty.hasPetFriendly">❌ Pet Friendly</span>
+          </div>
+        </div>
+
+        <div class="details-section">
+          <h3>Rating</h3>
+          <div class="rating-display">
+            <span class="stars">{{ getRatingStars(selectedProperty.propertyRate) }}</span>
+            <span>{{ selectedProperty.propertyRate.toFixed(1) }} out of 5</span>
+            <span>({{ selectedProperty.propertyRatingCount }} reviews)</span>
+          </div>
+        </div>
+
+        <div class="details-section">
+          <h3>Host Information</h3>
+          <p>
+            <strong>Name:</strong> {{ selectedProperty.hostName }}<br>
+            <strong>Phone:</strong> {{ selectedProperty.hostPhone }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ADD/EDIT PROPERTY MODAL ==================== -->
+  <div class="modal-overlay" *ngIf="showPropertyForm" (click)="cancelPropertyForm()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <button class="close-btn" (click)="cancelPropertyForm()">✕</button>
+      
+      <div class="modal-header">
+        <h2>{{ isEditMode ? 'Edit Property' : 'Add New Property' }}</h2>
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="submitPropertyForm()">
+          <!-- Basic Information -->
+          <div class="form-section">
+            <h3>Basic Information</h3>
+            
+            <div class="form-group">
+              <label>Property Name *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="propertyForm.propertyName" 
+                name="propertyName"
+                class="form-control"
+                placeholder="e.g., Cozy Beach Villa"
+                required
+                minlength="5"
+                maxlength="100">
+            </div>
+
+            <div class="form-group">
+              <label>Description *</label>
+              <textarea 
+                [(ngModel)]="propertyForm.propertyDescription" 
+                name="propertyDescription"
+                class="form-control" 
+                rows="4"
+                placeholder="Describe your property (20-1000 characters)"
+                required
+                minlength="20"
+                maxlength="1000"></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Number of Rooms *</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="propertyForm.noOfRooms" 
+                  name="noOfRooms"
+                  class="form-control"
+                  min="1"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label>Number of Bathrooms *</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="propertyForm.noOfBathrooms" 
+                  name="noOfBathrooms"
+                  class="form-control"
+                  min="1"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label>Max Guests *</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="propertyForm.maxNoOfGuests" 
+                  name="maxNoOfGuests"
+                  class="form-control"
+                  min="1"
+                  required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Price Per Day (₹) *</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="propertyForm.pricePerDay" 
+                  name="pricePerDay"
+                  class="form-control"
+                  min="100"
+                  step="100"
+                  required>
+              </div>
+
+              <div class="form-group" *ngIf="isEditMode">
+                <label>Property Status *</label>
+                <select 
+                  [(ngModel)]="propertyForm.propertyStatus" 
+                  name="propertyStatus"
+                  class="form-control"
+                  required>
+                  <option value="AVAILABLE">Available</option>
+                  <option value="UNAVAILABLE">Unavailable</option>
+                  <option value="UNDER_MAINTENANCE">Under Maintenance</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Image URL</label>
+              <input 
+                type="url" 
+                [(ngModel)]="propertyForm.imageURL" 
+                name="imageURL"
+                class="form-control"
+                placeholder="https://example.com/property-image.jpg">
+            </div>
+          </div>
+
+          <!-- Address Information -->
+          <div class="form-section">
+            <h3>Address</h3>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Building No *</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="propertyForm.buildingNo" 
+                  name="buildingNo"
+                  class="form-control"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label>Street *</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="propertyForm.street" 
+                  name="street"
+                  class="form-control"
+                  required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>City *</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="propertyForm.city" 
+                  name="city"
+                  class="form-control"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label>State *</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="propertyForm.state" 
+                  name="state"
+                  class="form-control"
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label>Country *</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="propertyForm.country" 
+                  name="country"
+                  class="form-control"
+                  required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Postal Code *</label>
+              <input 
+                type="text" 
+                [(ngModel)]="propertyForm.postalCode" 
+                name="postalCode"
+                class="form-control"
+                pattern="^\d{6}$"
+                placeholder="6-digit postal code"
+                required>
+            </div>
+          </div>
+
+          <!-- Amenities -->
+          <div class="form-section">
+            <h3>Amenities</h3>
+            
+            <div class="amenities-checkboxes">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="propertyForm.hasWifi" 
+                  name="hasWifi">
+                <span>📶 WiFi</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="propertyForm.hasParking" 
+                  name="hasParking">
+                <span>🅿️ Parking</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="propertyForm.hasPool" 
+                  name="hasPool">
+                <span>🏊 Swimming Pool</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="propertyForm.hasAc" 
+                  name="hasAc">
+                <span>❄️ Air Conditioning</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="propertyForm.hasHeater" 
+                  name="hasHeater">
+                <span>🔥 Heater</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="propertyForm.hasPetFriendly" 
+                  name="hasPetFriendly">
+                <span>🐕 Pet Friendly</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              {{ isEditMode ? 'Update Property' : 'Add Property' }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="cancelPropertyForm()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
