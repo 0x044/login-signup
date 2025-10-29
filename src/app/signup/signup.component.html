@@ -1,0 +1,259 @@
+<div class="signup-container">
+  <!-- Background Elements -->
+  <div class="background-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <!-- Signup Card -->
+  <div class="signup-card">
+    <!-- Header -->
+    <div class="signup-header">
+      <button class="back-button" (click)="navigateToHome()" type="button">
+        <span>←</span>
+      </button>
+      <h1 class="signup-title">Create Account</h1>
+      <p class="signup-subtitle">Join Spacefinders today</p>
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="alert alert-success">
+      <span class="alert-icon">✓</span>
+      <span class="alert-message">{{ successMessage }}</span>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+      <span class="alert-icon">✕</span>
+      <span class="alert-message">{{ errorMessage }}</span>
+    </div>
+
+    <!-- Signup Form -->
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup-form">
+      
+      <!-- Username Field -->
+      <div class="form-group">
+        <label for="username" class="form-label">
+          Username <span class="required">*</span>
+        </label>
+        <input
+          type="text"
+          id="username"
+          formControlName="username"
+          class="form-input"
+          [class.error]="hasError('username')"
+          placeholder="Enter your username"
+          autocomplete="username"
+        />
+        <span *ngIf="hasError('username')" class="error-message">
+          {{ getErrorMessage('username') }}
+        </span>
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="userMail" class="form-label">
+          Email Address <span class="required">*</span>
+        </label>
+        <input
+          type="email"
+          id="userMail"
+          formControlName="userMail"
+          class="form-input"
+          [class.error]="hasError('userMail')"
+          placeholder="your.email@example.com"
+          autocomplete="email"
+        />
+        <span *ngIf="hasError('userMail')" class="error-message">
+          {{ getErrorMessage('userMail') }}
+        </span>
+      </div>
+
+      <!-- Phone Number Field -->
+      <div class="form-group">
+        <label for="userPhone" class="form-label">
+          Phone Number <span class="required">*</span>
+        </label>
+        <input
+          type="tel"
+          id="userPhone"
+          formControlName="userPhone"
+          class="form-input"
+          [class.error]="hasError('userPhone')"
+          placeholder="9876543210"
+          autocomplete="tel"
+          maxlength="10"
+        />
+        <span *ngIf="hasError('userPhone')" class="error-message">
+          {{ getErrorMessage('userPhone') }}
+        </span>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">
+          Password <span class="required">*</span>
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            class="form-input"
+            [class.error]="hasError('password')"
+            placeholder="Enter your password"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+          >
+            <span *ngIf="!showPassword">👁️</span>
+            <span *ngIf="showPassword">🙈</span>
+          </button>
+        </div>
+        
+        <!-- Password Requirements -->
+        <div class="password-requirements" *ngIf="password?.touched">
+          <div class="requirement" [class.met]="getPasswordRequirements().hasMinLength">
+            <span class="requirement-icon">{{ getPasswordRequirements().hasMinLength ? '✓' : '○' }}</span>
+            At least 8 characters
+          </div>
+          <div class="requirement" [class.met]="getPasswordRequirements().hasUpperCase">
+            <span class="requirement-icon">{{ getPasswordRequirements().hasUpperCase ? '✓' : '○' }}</span>
+            One uppercase letter
+          </div>
+          <div class="requirement" [class.met]="getPasswordRequirements().hasLowerCase">
+            <span class="requirement-icon">{{ getPasswordRequirements().hasLowerCase ? '✓' : '○' }}</span>
+            One lowercase letter
+          </div>
+          <div class="requirement" [class.met]="getPasswordRequirements().hasNumeric">
+            <span class="requirement-icon">{{ getPasswordRequirements().hasNumeric ? '✓' : '○' }}</span>
+            One number
+          </div>
+          <div class="requirement" [class.met]="getPasswordRequirements().hasSpecialChar">
+            <span class="requirement-icon">{{ getPasswordRequirements().hasSpecialChar ? '✓' : '○' }}</span>
+            One special character (&comma;#$%^&+=)
+          </div>
+        </div>
+        
+        <span *ngIf="hasError('password')" class="error-message">
+          {{ getErrorMessage('password') }}
+        </span>
+      </div>
+
+      <!-- Confirm Password Field -->
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">
+          Confirm Password <span class="required">*</span>
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            class="form-input"
+            [class.error]="hasError('confirmPassword')"
+            placeholder="Re-enter your password"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="toggleConfirmPasswordVisibility()"
+          >
+            <span *ngIf="!showConfirmPassword">👁️</span>
+            <span *ngIf="showConfirmPassword">🙈</span>
+          </button>
+        </div>
+        <span *ngIf="hasError('confirmPassword')" class="error-message">
+          {{ getErrorMessage('confirmPassword') }}
+        </span>
+      </div>
+
+      <!-- Address Field -->
+      <div class="form-group">
+        <label for="userAddress" class="form-label">
+          Address <span class="required">*</span>
+        </label>
+        <textarea
+          id="userAddress"
+          formControlName="userAddress"
+          class="form-textarea"
+          [class.error]="hasError('userAddress')"
+          placeholder="Enter your complete address"
+          rows="3"
+        ></textarea>
+        <span *ngIf="hasError('userAddress')" class="error-message">
+          {{ getErrorMessage('userAddress') }}
+        </span>
+      </div>
+
+      <!-- User Role Selection -->
+      <div class="form-group">
+        <label class="form-label">
+          I want to <span class="required">*</span>
+        </label>
+        <div class="role-selection">
+          <label 
+            *ngFor="let role of userRoles" 
+            class="role-option"
+            [class.selected]="userRole?.value === role.value"
+          >
+            <input
+              type="radio"
+              formControlName="userRole"
+              [value]="role.value"
+              class="role-radio"
+            />
+            <div class="role-content">
+              <span class="role-icon">{{ role.icon }}</span>
+              <span class="role-label">{{ role.label }}</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="agreeTerms"
+            class="checkbox-input"
+          />
+          <span class="checkbox-text">
+            I agree to the <a href="#" class="link">Terms and Conditions</a> 
+            and <a href="#" class="link">Privacy Policy</a>
+            <span class="required">*</span>
+          </span>
+        </label>
+        <span *ngIf="hasError('agreeTerms')" class="error-message">
+          You must agree to the terms and conditions
+        </span>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="submit-button"
+        [disabled]="isLoading || signupForm.invalid"
+        [class.loading]="isLoading"
+      >
+        <span *ngIf="!isLoading">Create Account</span>
+        <span *ngIf="isLoading" class="loading-spinner">
+          <span class="spinner"></span>
+          Creating Account...
+        </span>
+      </button>
+
+      <!-- Login Link -->
+      <div class="footer-text">
+        Already have an account? 
+        <a (click)="navigateToLogin()" class="link-button">Login here</a>
+      </div>
+    </form>
+  </div>
+</div>
