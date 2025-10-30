@@ -1,0 +1,47 @@
+<div class="not-found-container">
+  <div class="not-found-card">
+    <div class="error-content">
+      <div class="error-number">404</div>
+      <div class="error-icon">
+        <mat-icon>search_off</mat-icon>
+      </div>
+      <h1>Page Not Found</h1>
+      <p class="error-message">
+        Sorry, the page you are looking for doesn't exist or has been moved.
+      </p>
+      <p class="error-description">
+        The page might have been deleted, renamed, or temporarily unavailable.
+      </p>
+    </div>
+    
+    <div class="error-actions">
+      <button mat-raised-button color="primary" (click)="goHome()" class="home-button">
+        <mat-icon>home</mat-icon>
+        Go to Home
+      </button>
+      <button mat-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+        Go Back
+      </button>
+    </div>
+    
+    <div class="help-section">
+      <h3>What can you do?</h3>
+      <div class="help-options">
+        <div class="help-item">
+          <mat-icon>home</mat-icon>
+          <span>Go to the home page and start fresh</span>
+        </div>
+        <div class="help-item">
+          <mat-icon>search</mat-icon>
+          <span>Search for what you're looking for</span>
+        </div>
+        <div class="help-item">
+          <mat-icon>contact_support</mat-icon>
+          <span>Contact support if you need help</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
